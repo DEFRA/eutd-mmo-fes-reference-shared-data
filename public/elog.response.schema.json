@@ -1,0 +1,113 @@
+{
+	"$schema": "http://json-schema.org/draft-07/schema#",
+	"title": "Fishing Activity Endpoint JSON Schema",
+	"type": "object",
+	"properties": {
+		"cfr": {
+			"type": "string"
+		},
+		"rssNumber": {
+			"type": "string"
+		},
+		"vesselRegistrationNumber": {
+			"type": "string"
+		},
+		"vesselName": {
+			"type": "string"
+		},
+		"fishingAuthority": {
+			"type": "string"
+		},
+		"activities": {
+			"type": "array",
+			"items": {
+				"$ref": "#/definitions/activity"
+			}
+		},
+		"dateTimeStamp": {
+			"type": "string"
+		}
+	},
+	"required": [
+		"cfr",
+		"rssNumber",
+		"vesselRegistrationNumber",
+		"vesselName",
+		"fishingAuthority",
+		"activities",
+		"dateTimeStamp"
+	],
+	"definitions": {
+		"activity": {
+			"type": "object",
+			"properties": {
+				"logbookNumber": {
+					"type": "string"
+				},
+				"returnDate": {
+					"type": "string"
+				},
+				"returnPort": {
+					"type": "string"
+				},
+				"activityAreas": {
+					"type": "array",
+					"items": {
+						"$ref": "#/definitions/activityArea"
+					}
+				}
+			},
+			"required": [
+				"logbookNumber",
+				"returnDate",
+				"returnPort",
+				"activityAreas"
+			]
+		},
+		"activityArea": {
+			"type": "object",
+			"properties": {
+				"faoArea": {
+					"type": "integer"
+				},
+				"faoSubArea": {
+					"type": "string"
+				},
+				"activityAreaCatches": {
+					"type": "array",
+					"items": {
+						"$ref": "#/definitions/activityAreaCatch"
+					}
+				}
+			},
+			"required": [
+				"faoArea",
+				"faoSubArea",
+				"activityAreaCatches"
+			]
+		},
+		"activityAreaCatch": {
+			"type": "object",
+			"properties": {
+				"species": {
+					"type": "string"
+				},
+				"presentation": {
+					"type": "string"
+				},
+				"state": {
+					"type": "string"
+				},
+				"weight": {
+					"type": "number"
+				}
+			},
+			"required": [
+				"species",
+				"presentation",
+				"state",
+				"weight"
+			]
+		}
+	}
+}

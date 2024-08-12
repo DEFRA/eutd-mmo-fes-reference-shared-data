@@ -1,0 +1,100 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "title": "Landing Declaration Export Schema",
+  "required": [
+    "cfr",
+    "rssNumber",
+    "vesselRegistrationNumber",
+    "vesselName",
+    "fishingAuthority",
+    "landings",
+    "dateTimeStamp"
+  ],
+  "type": "object",
+  "properties": {
+    "cfr": {
+      "type": ["string"]
+    },
+    "rssNumber": {
+      "type": ["string"]
+    },
+    "vesselRegistrationNumber": {
+      "type": ["string"]
+    },
+    "vesselName": {
+      "type": ["string"]
+    },
+    "fishingAuthority": {
+      "type": ["string"]
+    },
+    "landings": {
+      "items": {
+        "$ref": "#/definitions/landing"
+      },
+      "type": ["array"]
+    },
+    "dateTimeStamp": {
+      "type": ["string"]
+    }
+  },
+  "definitions": {
+    "landing": {
+      "required": ["landingDateTime", "landingPort", "landingAreas"],
+      "type": "object",
+      "properties": {
+        "logbookNumber": {
+          "type": ["string"]
+        },
+        "landingDateTime": {
+          "type": ["string"]
+        },
+        "landingPort": {
+          "type": ["string"]
+        },
+        "landingAreas": {
+          "items": {
+            "$ref": "#/definitions/landingArea"
+          },
+          "type": ["array"]
+        }
+      }
+    },
+    "landingArea": {
+      "type": "object",
+      "required": ["faoArea", "faoSubArea", "landingAreaCatches"],
+      "properties": {
+        "faoArea": {
+          "type": ["integer"]
+        },
+        "faoSubArea": {
+          "type": ["string"]
+        },
+        "landingAreaCatches": {
+          "items": {
+            "$ref": "#/definitions/landingAreaCatch"
+          },
+          "type": ["array"]
+        }
+      }
+    },
+    "landingAreaCatch": {
+      "type": "object",
+      "required": ["species", "presentation", "state", "weight"],
+      "properties": {
+        "species": {
+          "type": ["string"]
+        },
+        "presentation": {
+          "type": ["string"]
+        },
+        "state": {
+          "type": ["string"]
+        },
+        "weight": {
+          "type": ["number"]
+        }
+      }
+    }
+  }
+}
+

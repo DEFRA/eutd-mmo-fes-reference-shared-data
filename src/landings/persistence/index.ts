@@ -1,0 +1,1 @@
+export { getCertificateByDocumentNumberWithNumberOfFailedAttemptsQuery } from "./catchCert";

@@ -1,0 +1,1 @@
+export { getLandingsFromCatchCertificate, shouldIncludeLanding, mapLandingWithLandingStatus } from "./ccOnlineReport";

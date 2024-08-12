@@ -1,0 +1,110 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema",
+  "title": "Under 10m Fishing Activity Export Schema",
+  "required": [
+    "cfr",
+    "rssNumber",
+    "vesselRegistrationNumber",
+    "vesselName",
+    "fishingAuthority",
+    "activities",
+    "dateTimeStamp"
+  ],
+  "type": "object",
+  "properties": {
+    "cfr": {
+      "type": ["string"],
+      "maxLength": 12
+    },
+    "rssNumber": {
+      "type": ["string"],
+      "maxLength": 6
+    },
+    "vesselRegistrationNumber": {
+      "type": ["string"],
+      "maxLength": 14
+    },
+    "vesselName": {
+      "type": ["string"],
+      "maxLength": 40
+    },
+    "fishingAuthority": {
+      "type": ["string"],
+      "maxLength": 3
+    },
+    "activities": {
+      "items": {
+        "$ref": "#/definitions/activity"
+      },
+      "type": ["array"]
+    },
+    "dateTimeStamp": {
+      "type": ["string"]
+    }
+  },
+  "definitions": {
+    "activity": {
+      "type": "object",
+      "required": [ "tripId", "returnDate", "returnPort", "activityAreas" ],
+      "properties": {
+        "tripId": {
+          "type": ["string"],
+          "maxLength": 30
+        },
+        "returnDate": {
+          "type": ["string"]
+        },
+        "returnPort": {
+          "type": ["string"],
+          "maxLength": 5
+        },
+        "activityAreas": {
+          "type": ["array"],
+          "items": {
+            "$ref": "#/definitions/activityArea"
+          }
+        }
+      }
+    },
+    "activityArea": {
+      "type": "object",
+      "properties": {
+        "faoArea": {
+          "type": ["integer"]
+        },
+        "faoSubArea": {
+          "type": ["string"],
+          "maxLength": 2
+        },
+        "activityAreaCatches": {
+          "type": ["array"],
+          "items": {
+            "$ref": "#/definitions/activityAreaCatch"
+          }
+        }
+      },
+      "required": [ "faoArea", "faoSubArea", "activityAreaCatches" ]
+    },
+    "activityAreaCatch": {
+      "type": "object",
+      "properties": {
+        "species": {
+          "maxLength": 3,
+          "type": ["string"]
+        },
+        "presentation": {
+          "type": ["string"],
+          "maxLength": 5
+        },
+        "state": {
+          "type": ["string"],
+          "maxLength": 3
+        },
+        "weight": {
+          "type": ["number"]
+        }
+      },
+      "required": [ "species", "presentation", "state", "weight" ]
+    }
+  }
+}
