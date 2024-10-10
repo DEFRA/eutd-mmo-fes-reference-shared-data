@@ -87,7 +87,7 @@ stages:
       inputs:
         command: publish
         publishRegistry: useFeed
-        publishFeed: DEFRA-EUX-MMO/mmo-shared-reference-data
+        publishFeed: DEFRA-MMO-FES/mmo-shared-reference-data
       displayName: Publish Feed
       
 # Central mmo-central-ado-pipeline-templates reference
