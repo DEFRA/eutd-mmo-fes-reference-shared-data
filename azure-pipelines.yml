@@ -12,13 +12,13 @@ trigger:
 
 # variables:
 
-# resources:
-#   repositories:
-#     - repository: CentralAdoPipelineTemplates
-#       # endpoint: defradev
-#       name: DEFRA-EUX-MMO/mmo-central-ado-pipeline-templates
-#       type: git
-#       ref: main
+resources:
+  repositories:
+    - repository: CentralAdoPipelineTemplates
+      # endpoint: defradev
+      name: DEFRA-MMO-FES/mmo-fes-central-ado-pipeline-templates
+      type: git
+      ref: main
   
 
 stages:
@@ -91,4 +91,4 @@ stages:
       displayName: Publish Feed
       
 # Central mmo-central-ado-pipeline-templates reference
-# - template: /includes/sonar-integration-template.yml@CentralAdoPipelineTemplates 
+- template: /includes/sonar-integration-template.yml@CentralAdoPipelineTemplates 
