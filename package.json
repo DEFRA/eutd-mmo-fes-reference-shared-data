@@ -1,5 +1,5 @@
 {
-  "name": "mmo-shared-reference-data",
+  "name": "mmo-fes-reference-shared-data",
   "version": "1.0.51",
   "description": "Shared repo which holds common code of reference data reader and batch data repo",
   "main": "./dist/index.js",
