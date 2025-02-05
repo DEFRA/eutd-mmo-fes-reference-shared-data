@@ -233,7 +233,13 @@ export function* unwindCatchCerts(catchCerts) {
             dataEverExpected: caughtBy.dataEverExpected,
             landingDataExpectedDate: caughtBy.landingDataExpectedDate,
             landingDataEndDate: caughtBy.landingDataEndDate,
-            isLegallyDue: caughtBy.isLegallyDue
+            isLegallyDue: caughtBy.isLegallyDue,
+            vesselRiskScore: caughtBy.vesselRiskScore,
+            exporterRiskScore: caughtBy.exporterRiskScore,
+            speciesRiskScore: caughtBy.speciesRiskScore,
+            threshold: caughtBy.threshold,
+            riskScore: caughtBy.riskScore,
+            isSpeciesRiskEnabled: caughtBy.isSpeciesRiskEnabled
           }
         }
       }

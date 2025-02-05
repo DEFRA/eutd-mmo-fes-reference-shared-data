@@ -398,7 +398,7 @@ describe('When updating a landing within an online Catch Certificate', () => {
 
   });
 
-  it('will place a _status of has Landing data for eLogs failures within thier deminimus', () => {
+  it('will place a _status of elog species mis-match for eLogs failures within thier deminimus', () => {
 
     const validation: ICcQueryResult = {
       documentNumber: "CC1",
@@ -461,11 +461,11 @@ describe('When updating a landing within an online Catch Certificate', () => {
 
     const result = mapLandingWithLandingStatus(product, validation, () => {return 1});
 
-    expect(result.caughtBy?.[0]._status).toEqual(LandingStatus.Complete);
+    expect(result.caughtBy?.[0]._status).toEqual(LandingStatus.Elog);
 
   });
 
-  it('will place a _status of Pending Landing for a landing where an overuse has occured', () => {
+  it('will place a _status of landing data overuse for a landing where an overuse has occured', () => {
 
     const validation: ICcQueryResult = {
       documentNumber: "CC1",
@@ -521,14 +521,14 @@ describe('When updating a landing within an online Catch Certificate', () => {
         }
       ],
       isOverusedThisCert: false,
-      isOverusedAllCerts: false,
+      isOverusedAllCerts: true,
       overUsedInfo: [],
       durationSinceCertCreation: "PT0.009S"
     };
 
     const result = mapLandingWithLandingStatus(product, validation, () => {return 1});
 
-    expect(result.caughtBy?.[0]._status).toEqual(LandingStatus.Complete);
+    expect(result.caughtBy?.[0]._status).toEqual(LandingStatus.LandingOveruse);
   });
 
   it('will place a status of pending landing data for ignored landings', () => {

@@ -248,11 +248,10 @@ export function* ccQuery(
                     r.isOverusedThisCert = false;
                     r.overUsedInfo = [];
 
-                    const isEndDateReached = (validation: ICcQueryResult): boolean => (moment.utc(validation.extended.landingDataEndDate, 'YYYY-MM-DD', true).isValid()) ? queryTime.isAfter(moment.utc(validation.extended.landingDataEndDate).add(1, 'day'), 'day') : moment.duration(validation.durationSinceCertCreation) > moment.duration(14, 'days');
+                    const isEndDateReached = (validation: ICcQueryResult): boolean => (moment.utc(validation.extended.landingDataEndDate, 'YYYY-MM-DD', true).isValid()) ? queryTime.isAfter(moment.utc(validation.extended.landingDataEndDate), 'day') : moment.duration(validation.durationSinceCertCreation) > moment.duration(14, 'days');
 
                     if (isElog(isWithinDeminimus)(r) && isEndDateReached(r)) {
                         r.isExceeding14DayLimit = true;
-                        r.extended.landingStatus = LandingStatus.Exceeded14Days;
                     }
                 }
 

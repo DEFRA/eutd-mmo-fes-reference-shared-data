@@ -126,7 +126,8 @@ export enum LandingStatusType {
     ValidationFailure_WeightAndOveruse = 'Weight and Overuse Failure',
     PendingLandingData_DataNotYetExpected = 'Pending Landing Data - Data Not Yet Expected',
     PendingLandingData_DataExpected = 'Pending Landing Data - Data Expected',
-    PendingLandingData_ElogSpecies = 'Pending Landing Data - Elog Species'
+    PendingLandingData_ElogSpecies = 'Pending Landing Data - Elog Species',
+    PendingLandingData = 'Pending Landing Data'
 }
 
 export enum DefraCcLandingStatusType {

@@ -1,6 +1,7 @@
 import moment from 'moment';
 import { type Catch, type Product, LandingStatus, DocumentStatuses } from '../types/document';
 import { ICcQueryResult } from "../types/query";
+import { isElog, isWithinDeminimus } from '../query';
 
 export function getLandingsFromCatchCertificate(catchCertificate, reportingNewLandings = false) {
   return [].concat(...catchCertificate.exportData.products.map(product =>
@@ -13,7 +14,13 @@ export function getLandingsFromCatchCertificate(catchCertificate, reportingNewLa
         landingDataExpectedDate: landing.landingDataExpectedDate,
         landingDataEndDate: landing.landingDataEndDate,
         createdAt: catchCertificate.createdAt,
-        isLegallyDue: landing.isLegallyDue
+        isLegallyDue: landing.isLegallyDue,
+        vesselRiskScore: landing.vesselRiskScore,
+        exporterRiskScore: landing.exporterRiskScore,
+        speciesRiskScore: landing.speciesRiskScore,
+        threshold: landing.threshold,
+        riskScore: landing.riskScore,
+        isSpeciesRiskEnabled: landing.isSpeciesRiskEnabled
       }
     ]), [])))
 }
@@ -39,6 +46,12 @@ export function mapLandingWithLandingStatus(product: Product, validation: ICcQue
       landingDataExpectedDate: validation.extended.landingDataExpectedDate,
       landingDataEndDate: validation.extended.landingDataEndDate,
       licenceHolder: validation.extended.licenceHolder,
+      vesselRiskScore: validation.extended.vesselRiskScore,
+      exporterRiskScore: validation.extended.exporterRiskScore,
+      speciesRiskScore: validation.extended.speciesRiskScore,
+      threshold: validation.extended.threshold,
+      riskScore: validation.extended.riskScore,
+      isSpeciesRiskEnabled: validation.extended.isSpeciesRiskEnabled,
       _status: (validation.status === DocumentStatuses.Complete) ? findStatus(validation) : undefined
     } : landing))
   }
@@ -55,6 +68,19 @@ function findStatus(validation: ICcQueryResult): LandingStatus {
 
   if (!validation.isLandingExists) {
     return LandingStatus.Pending;
+  }
+
+  if (isElog(isWithinDeminimus)(validation)) {
+    return LandingStatus.Elog;
+  }
+
+  if (
+    validation.isSpeciesExists &&
+    !validation.isOverusedThisCert &&
+    !validation.isPreApproved &&
+    validation.isOverusedAllCerts
+  ) {
+    return LandingStatus.LandingOveruse;
   }
 
   return LandingStatus.Complete;

@@ -52,48 +52,60 @@ export const isLandingDataLate: (firstDateTimeRetrieved: string, landingDataExpe
   return firstDateTimeRetrieved !== undefined && landingDataExpectedDate !== undefined && landingDataReceivedTime.isValid() && landingDataExpected.isValid() ? landingDataReceivedTime.isAfter(landingDataExpected, 'day') : undefined;
 }
 
+function landingExists(ccQuery: ICcQueryResult, output: LandingStatusType) {
+  if (ccQuery.isSpeciesExists) {
+    const isOverusedAllCerts = ccQuery.isOverusedAllCerts && ccQuery.overUsedInfo.filter((documentNumber: string) => documentNumber !== ccQuery.documentNumber).length > 0;
+    if (ccQuery.isOverusedThisCert && isOverusedAllCerts) {
+      output = LandingStatusType.ValidationFailure_WeightAndOveruse
+    } else if (ccQuery.isOverusedThisCert) {
+      output = LandingStatusType.ValidationFailure_Weight;
+    } else if (ccQuery.isOverusedAllCerts) {
+      output = LandingStatusType.ValidationFailure_Overuse;
+    } else {
+      output = LandingStatusType.ValidationSuccess;
+    }
+  } else {
+    output = LandingStatusType.ValidationFailure_Species;
+    if (isElog(isWithinDeminimus)(ccQuery) && !ccQuery.isExceeding14DayLimit ) {
+      output = LandingStatusType.PendingLandingData_ElogSpecies;
+    }
+  }
+
+  return output;
+}
+
+function landingDoesNotExists(ccQuery: ICcQueryResult, isHighRisk: boolean, landingDataExpectedAtSubmission: boolean,  output: LandingStatusType) {
+  const isNoLandingData = (ccQuery: ICcQueryResult) =>
+    landingDataExpectedAtSubmission && !isInRetrospectivePeriod(moment.utc(), ccQuery) ||
+    ccQuery.extended.vesselOverriddenByAdmin && isHighRisk ||
+    ccQuery.isExceeding14DayLimit;
+
+  if (isNoLandingData(ccQuery)) {
+    output = LandingStatusType.ValidationFailure_NoLandingData;
+  }
+
+  return output;
+}
+
 export function toLandingStatus(ccQuery: ICcQueryResult, isHighRisk: boolean): LandingStatusType {
   if (ccQuery.extended.dataEverExpected === false)
     return LandingStatusType.DataNeverExpected;
 
   const landingDataExpectedAtSubmission = isLandingDataExpectedAtSubmission(ccQuery.createdAt, ccQuery.extended.landingDataExpectedDate);
-  
+
   let output: LandingStatusType = landingDataExpectedAtSubmission ? LandingStatusType.PendingLandingData_DataExpected : LandingStatusType.PendingLandingData_DataNotYetExpected;
 
   if (ccQuery.isLandingExists) {
-    if (ccQuery.isSpeciesExists) {
-      const isOverusedAllCerts = ccQuery.isOverusedAllCerts && ccQuery.overUsedInfo.filter((documentNumber: string) => documentNumber !== ccQuery.documentNumber).length > 0;
-      if (ccQuery.isOverusedThisCert && isOverusedAllCerts ) {
-        output = LandingStatusType.ValidationFailure_WeightAndOveruse
-      } else if (ccQuery.isOverusedThisCert) {
-        output = LandingStatusType.ValidationFailure_Weight;
-      } else if (isOverusedAllCerts) {
-        output = LandingStatusType.ValidationFailure_Overuse;
-      } else {
-        output = LandingStatusType.ValidationSuccess;
-      }
-    } else {
-      output = LandingStatusType.ValidationFailure_Species;
-      if (isElog(isWithinDeminimus)(ccQuery)) {
-        output = ccQuery.isExceeding14DayLimit ? LandingStatusType.ValidationFailure_NoLandingData : LandingStatusType.PendingLandingData_ElogSpecies;
-      }
-    }
+    output = landingExists(ccQuery, output)
   } else {
-    const isNoLandingData = (ccQuery: ICcQueryResult) => 
-        landingDataExpectedAtSubmission && !isInRetrospectivePeriod(moment.utc(), ccQuery) || 
-        ccQuery.extended.vesselOverriddenByAdmin && isHighRisk ||
-        ccQuery.isExceeding14DayLimit;
-
-    if (isNoLandingData(ccQuery)) {
-      output = LandingStatusType.ValidationFailure_NoLandingData;
-    }
+    output = landingDoesNotExists(ccQuery, isHighRisk, landingDataExpectedAtSubmission, output);
   }
 
   if (isEmpty(ccQuery.extended.licenceHolder)) {
     output = LandingStatusType.ValidationFailure_NoLicenceHolder;
   }
 
-  return output; 
+  return output;
 }
 
 export const has14DayLimitReached: (item: ICcQueryResult, landingDataNotExpected: boolean) => boolean = (item: ICcQueryResult, landingDataNotExpected: boolean) =>

@@ -17,7 +17,8 @@ export interface ILanding {
   dateTimeLanded: string,
   dateTimeRetrieved?: string,
   source: string,
-  items: ILandingItem[]
+  items: ILandingItem[],
+  _ignore?: boolean
 }
 
 export interface ILandingQuery {

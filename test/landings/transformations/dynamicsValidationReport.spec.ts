@@ -284,67 +284,165 @@ describe('When mapping from an ICcQueryResult to an Landing Status', () => {
     it('will flag as `Overuse Failure` if the cert is overuse', () => {
 
       const input: ICcQueryResult = {
-        documentNumber: 'CC1',
-        documentType: 'catchCertificate',
-        createdAt: moment.utc('2019-07-13T08:26:06.939Z').toISOString(),
-        status: 'COMPLETE',
-        rssNumber: 'rssWA1',
-        da: 'Guernsey',
-        dateLanded: '2019-07-10',
-        species: 'LBE',
-        weightOnCert: 121,
-        rawWeightOnCert: 122,
-        weightOnAllCerts: 200,
+        documentNumber: "GBR-2024-CC-26F85FD5A",
+        documentType: "catchCertificate",
+        createdAt: "2024-09-13T10:40:40.023Z",
+        status: "COMPLETE",
+        extended: {
+          exporterContactId: "42baa958-e498-e911-a962-000d3ab6488a",
+          exporterName: "harshal edake",
+          exporterCompanyName: "Capgemini",
+          exporterPostCode: "CH3 7PN",
+          vessel: "CATHARINA OF LADRAM",
+          landingId: "GBR-2024-CC-26F85FD5A-6863951470",
+          pln: "BM111",
+          fao: "FAO27",
+          flag: "GBR",
+          cfr: "GBR000C19045",
+          presentation: "WHL",
+          presentationName: "Whole",
+          species: "Common squids nei (SQC)",
+          scientificName: "Loligo spp",
+          state: "FRE",
+          stateName: "Fresh",
+          commodityCode: "03074220",
+          commodityCodeDescription: "Squid \"Loligo spp.\", live, fresh or chilled",
+          transportationVehicle: "truck",
+          numberOfSubmissions: 1,
+          speciesOverriddenByAdmin: false,
+          licenceHolder: "WATERDANCE LIMITED ",
+          dataEverExpected: true,
+          landingDataExpectedDate: "2024-07-19",
+          landingDataEndDate: "2024-08-02",
+          isLegallyDue: true,
+          homePort: "BRIXHAM",
+          imoNumber: 9019365,
+          licenceNumber: "11930",
+          licenceValidTo: "2030-12-31"
+        },
+        rssNumber: "C19045",
+        da: "England",
+        dateLanded: "2024-07-19",
+        species: "SQC",
+        weightFactor: 1,
+        weightOnCert: 100,
+        rawWeightOnCert: 100,
+        weightOnAllCerts: 400,
         weightOnAllCertsBefore: 0,
         weightOnAllCertsAfter: 100,
-        weightFactor: 5,
         isLandingExists: true,
-        isSpeciesExists: true,
+        isExceeding14DayLimit: false,
+        speciesAlias: "N",
+        durationSinceCertCreation: "PT0.008S",
+        source: "LANDING_DECLARATION",
+        weightOnLandingAllSpecies: 100,
         numberOfLandingsOnDay: 1,
-        weightOnLanding: 30,
-        weightOnLandingAllSpecies: 30,
+        durationBetweenCertCreationAndFirstLandingRetrieved: "-PT19H49M5.517S",
+        durationBetweenCertCreationAndLastLandingRetrieved: "-PT19H49M5.517S",
+        firstDateTimeLandingDataRetrieved: "2024-09-12T14:51:34.506Z",
+        isSpeciesExists: true,
+        weightOnLanding: 100,
         landingTotalBreakdown: [
           {
-            factor: 1.7,
-            isEstimate: true,
-            weight: 30,
-            liveWeight: 51,
-            source: LandingSources.LandingDeclaration
+            presentation: "WHL",
+            state: "FRE",
+            source: "LANDING_DECLARATION",
+            isEstimate: false,
+            factor: 1,
+            weight: 100,
+            liveWeight: 100
           }
         ],
         isOverusedThisCert: false,
         isOverusedAllCerts: true,
-        isExceeding14DayLimit: false,
-        overUsedInfo: ['CC1','CC2'],
-        durationSinceCertCreation: moment.duration(
-          queryTime
-            .diff(moment.utc('2019-07-13T08:26:06.939Z'))).toISOString(),
-        durationBetweenCertCreationAndFirstLandingRetrieved: moment.duration(
-          moment.utc('2019-07-11T09:00:00.000Z')
-            .diff(moment.utc('2019-07-13T08:26:06.939Z'))).toISOString(),
-        durationBetweenCertCreationAndLastLandingRetrieved: moment.duration(
-          moment.utc('2019-07-11T09:00:00.000Z')
-            .diff(moment.utc('2019-07-13T08:26:06.939Z'))).toISOString(),
+        overUsedInfo: [
+          "GBR-2024-CC-26F85FD5A"
+        ]
+      }
+
+      const result = SUT.toLandingStatus(input, false);
+
+      expect(result).toEqual(LandingStatusType.ValidationFailure_Overuse);
+    });
+
+    it('will flag as `Overuse Failure` if the cert is overuse with species alias', () => {
+
+      const input: ICcQueryResult = {
+        documentNumber: "GBR-2024-CC-26F85FD5A",
+        documentType: "catchCertificate",
+        createdAt: "2024-09-13T10:40:40.023Z",
+        status: "COMPLETE",
         extended: {
-          landingId: 'rssWA12019-07-10',
-          exporterName: 'Mr Bob',
-          presentation: 'SLC',
-          documentUrl: '_887ce0e0-9ab1-4f4d-9524-572a9762e021.pdf',
-          presentationName: 'sliced',
-          vessel: 'DAYBREAK',
-          fao: 'FAO27',
-          pln: 'WA1',
-          species: 'Lobster',
-          state: 'FRE',
-          stateName: 'fresh',
-          commodityCode: '1234',
-          investigation: {
-            investigator: "Investigator Gadget",
-            status: InvestigationStatus.Open
-          },
-          transportationVehicle: 'directLanding',
-          licenceHolder: 'Mr Bob'
-        }
+          exporterContactId: "42baa958-e498-e911-a962-000d3ab6488a",
+          exporterName: "harshal edake",
+          exporterCompanyName: "Capgemini",
+          exporterPostCode: "CH3 7PN",
+          vessel: "CATHARINA OF LADRAM",
+          landingId: "GBR-2024-CC-26F85FD5A-1331378976",
+          pln: "BM111",
+          fao: "FAO27",
+          flag: "GBR",
+          cfr: "GBR000C19045",
+          presentation: "WHL",
+          presentationName: "Whole",
+          species: "European squid (SQR)",
+          scientificName: "Loligo vulgaris",
+          state: "FRE",
+          stateName: "Fresh",
+          commodityCode: "03074220",
+          commodityCodeDescription: "Squid \"Loligo spp.\", live, fresh or chilled",
+          transportationVehicle: "truck",
+          numberOfSubmissions: 1,
+          speciesOverriddenByAdmin: false,
+          licenceHolder: "WATERDANCE LIMITED ",
+          dataEverExpected: true,
+          landingDataExpectedDate: "2024-07-19",
+          landingDataEndDate: "2024-08-02",
+          isLegallyDue: true,
+          homePort: "BRIXHAM",
+          imoNumber: 9019365,
+          licenceNumber: "11930",
+          licenceValidTo: "2030-12-31"
+        },
+        rssNumber: "C19045",
+        da: "England",
+        dateLanded: "2024-07-19",
+        species: "SQR",
+        weightFactor: 1,
+        weightOnCert: 100,
+        rawWeightOnCert: 100,
+        weightOnAllCerts: 400,
+        weightOnAllCertsBefore: 0,
+        weightOnAllCertsAfter: 100,
+        isLandingExists: true,
+        isExceeding14DayLimit: false,
+        speciesAlias: "Y",
+        durationSinceCertCreation: "PT0.008S",
+        source: "LANDING_DECLARATION",
+        weightOnLandingAllSpecies: 100,
+        numberOfLandingsOnDay: 1,
+        durationBetweenCertCreationAndFirstLandingRetrieved: "-PT19H49M5.517S",
+        durationBetweenCertCreationAndLastLandingRetrieved: "-PT19H49M5.517S",
+        firstDateTimeLandingDataRetrieved: "2024-09-12T14:51:34.506Z",
+        speciesAnomaly: "SQC",
+        isSpeciesExists: true,
+        weightOnLanding: 100,
+        landingTotalBreakdown: [
+          {
+            presentation: "WHL",
+            state: "FRE",
+            source: "LANDING_DECLARATION",
+            isEstimate: false,
+            factor: 1,
+            weight: 100,
+            liveWeight: 100
+          }
+        ],
+        isOverusedThisCert: false,
+        isOverusedAllCerts: true,
+        overUsedInfo: [
+          "GBR-2024-CC-26F85FD5A"
+        ]
       }
 
       const result = SUT.toLandingStatus(input, false);
@@ -423,81 +521,81 @@ describe('When mapping from an ICcQueryResult to an Landing Status', () => {
       expect(result).toEqual(LandingStatusType.ValidationFailure_Weight);
     });
 
-    it('will flag as `Weight Failure` if over use occurs on the same certificate', () => {
-      const input: ICcQueryResult =   {
-        "documentNumber": "GBR-2024-CC-354FF5D49",
-        "documentType": "catchCertificate",
-        "createdAt": "2024-07-17T18:12:55.678Z",
-        "status": "COMPLETE",
-        "extended": {
-          "exporterContactId": "0eee9e71-61d5-ee11-904d-000d3ab00f0f",
-          "exporterName": "Gosia Miksza",
-          "exporterCompanyName": "weight failure retest EoDA2",
-          "exporterPostCode": "PE2 8YY",
-          "vessel": "HEATHER D",
-          "landingId": "GBR-2024-CC-FA0CB09E3-2521405671",
-          "pln": "LA8",
-          "fao": "FAO27",
-          "flag": "GBR",
-          "cfr": "GBR000B11377",
-          "presentation": "WHL",
-          "presentationName": "Whole",
-          "species": "Atlantic wolffish (CAA)",
-          "scientificName": "Anarhichas lupus",
-          "state": "FRE",
-          "stateName": "Fresh",
-          "commodityCode": "03028990",
-          "commodityCodeDescription": "Fresh or chilled fish, n.e.s.",
-          "transportationVehicle": "truck",
-          "numberOfSubmissions": 2,
-          "speciesOverriddenByAdmin": false,
-          "licenceHolder": "MR B THOMAS",
-          "dataEverExpected": true,
-          "landingDataExpectedDate": "2024-07-16",
-          "landingDataEndDate": "2024-07-21",
-          "isLegallyDue": false,
-          "homePort": "SWANSEA",
-          "imoNumber": null,
-          "licenceNumber": "11407",
-          "licenceValidTo": "2030-12-31"
+    it('will flag as `Weight Failure` if over use occurs on the same certificate - Weight and Overuse only applies if the landing has been used on more than one catch certificates', () => {
+      const input: ICcQueryResult =     {
+        documentNumber: "GBR-2024-CC-FA0CB09E3",
+        documentType: "catchCertificate",
+        createdAt: "2024-07-17T10:27:23.172Z",
+        status: "COMPLETE",
+        extended: {
+          exporterContactId: "0eee9e71-61d5-ee11-904d-000d3ab00f0f",
+          exporterName: "Gosia Miksza",
+          exporterCompanyName: "weight failure retest EoDA2",
+          exporterPostCode: "PE2 8YY",
+          vessel: "HEATHER D",
+          landingId: "GBR-2024-CC-FA0CB09E3-2521405671",
+          pln: "LA8",
+          fao: "FAO27",
+          flag: "GBR",
+          cfr: "GBR000B11377",
+          presentation: "WHL",
+          presentationName: "Whole",
+          species: "Atlantic wolffish (CAA)",
+          scientificName: "Anarhichas lupus",
+          state: "FRE",
+          stateName: "Fresh",
+          commodityCode: "03028990",
+          commodityCodeDescription: "Fresh or chilled fish, n.e.s.",
+          transportationVehicle: "truck",
+          numberOfSubmissions: 1,
+          speciesOverriddenByAdmin: false,
+          licenceHolder: "MR B THOMAS",
+          dataEverExpected: true,
+          landingDataExpectedDate: "2024-07-17",
+          landingDataEndDate: "2024-07-22",
+          isLegallyDue: false,
+          homePort: "SWANSEA",
+          imoNumber: null,
+          licenceNumber: "11407",
+          licenceValidTo: "2030-12-31"
         },
-        "rssNumber": "B11377",
-        "da": "Wales",
-        "dateLanded": "2024-07-16",
-        "species": "CAA",
-        "weightFactor": 1,
-        "weightOnCert": 85,
-        "rawWeightOnCert": 85,
-        "weightOnAllCerts": 85,
-        "weightOnAllCertsBefore": 0,
-        "weightOnAllCertsAfter": 85,
-        "isLandingExists": true,
-        "isExceeding14DayLimit": false,
-        "speciesAlias": "N",
-        "durationSinceCertCreation": "PT0.011S",
-        "source": "LANDING_DECLARATION",
-        "weightOnLandingAllSpecies": 60,
-        "numberOfLandingsOnDay": 1,
-        "durationBetweenCertCreationAndFirstLandingRetrieved": "-PT0.029S",
-        "durationBetweenCertCreationAndLastLandingRetrieved": "-PT0.029S",
-        "firstDateTimeLandingDataRetrieved": "2024-07-17T18:12:55.649Z",
-        "isSpeciesExists": true,
-        "weightOnLanding": 30,
-        "landingTotalBreakdown": [
+        rssNumber: "B11377",
+        da: "Wales",
+        dateLanded: "2024-07-16",
+        species: "CAA",
+        weightFactor: 1,
+        weightOnCert: 85,
+        rawWeightOnCert: 85,
+        weightOnAllCerts: 85,
+        weightOnAllCertsBefore: 0,
+        weightOnAllCertsAfter: 85,
+        isLandingExists: true,
+        isExceeding14DayLimit: false,
+        speciesAlias: "N",
+        durationSinceCertCreation: "PT0.129S",
+        source: "LANDING_DECLARATION",
+        weightOnLandingAllSpecies: 60,
+        numberOfLandingsOnDay: 1,
+        durationBetweenCertCreationAndFirstLandingRetrieved: "-PT0.441S",
+        durationBetweenCertCreationAndLastLandingRetrieved: "-PT0.441S",
+        firstDateTimeLandingDataRetrieved: "2024-07-17T10:27:22.731Z",
+        isSpeciesExists: true,
+        weightOnLanding: 30,
+        landingTotalBreakdown: [
           {
-            "presentation": "WHL",
-            "state": "FRE",
-            "source": "LANDING_DECLARATION",
-            "isEstimate": false,
-            "factor": 1,
-            "weight": 30,
-            "liveWeight": 30
+            presentation: "WHL",
+            state: "FRE",
+            source: "LANDING_DECLARATION",
+            isEstimate: false,
+            factor: 1,
+            weight: 30,
+            liveWeight: 30
           }
         ],
-        "isOverusedThisCert": true,
-        "isOverusedAllCerts": true,
-        "overUsedInfo": [
-          "GBR-2024-CC-354FF5D49"
+        isOverusedThisCert: true,
+        isOverusedAllCerts: true,
+        overUsedInfo: [
+          "GBR-2024-CC-FA0CB09E3"
         ]
       }
 
@@ -1546,7 +1644,7 @@ describe('When mapping from an ICcQueryResult to an Landing Status', () => {
       expect(result).toEqual(LandingStatusType.PendingLandingData_ElogSpecies);
     });
 
-    it('will flag as `No Landing Data Failure` if the cert is a Elog species mismatch and species weight is under the 50 KG deminimus and end date has reached at retrospective check', () => {
+    it('will flag as `Species Failure` if the cert is a Elog species mismatch and species weight is under the 50 KG deminimus and end date has reached at retrospective check', () => {
 
       const input: ICcQueryResult = {
         documentNumber: 'CC1',
@@ -1615,7 +1713,7 @@ describe('When mapping from an ICcQueryResult to an Landing Status', () => {
 
       const result = SUT.toLandingStatus(input, false);
 
-      expect(result).toEqual(LandingStatusType.ValidationFailure_NoLandingData);
+      expect(result).toEqual(LandingStatusType.ValidationFailure_Species);
     });
 
     it('will flag as `Pending Landing Data - Elog Species` if isLegallyDue is true', () => {

@@ -1,4 +1,5 @@
 import axios, { AxiosResponse } from "axios";
+import querystring from 'querystring';
 import { getConfig } from '../config';
 import { CertificateAddress } from "../landings/types/defraValidation";
 import { SSL_OP_LEGACY_SERVER_CONNECT } from "constants";
@@ -11,6 +12,20 @@ const {v4:uuidv4} = require('uuid');
 interface IBoomiLandingData {
   landingDate: string,
   rssNumber: string
+}
+
+export type IOAuthRequest = {
+  client_id: string,
+  client_secret: string,
+  scope: string,
+  grant_type: string
+}
+
+export interface IOAuthResponse {
+  token_type: string,
+  expires_in: number,
+  ext_expires_in: number,
+  access_token: string
 }
 
 export interface IBoomiAddressResponse {
@@ -47,55 +62,69 @@ export class BoomiService {
 
   static callingURL(params: any, resourceType: resourceType) {
     return {
-      landing: `/ws/rest/DEFRA/v1/ECC/LandingDeclarations?rssNumber=${params.rssNumber}&landingDate=${params.landingDate}`,
-      catchActivity: `/ws/rest/DEFRA/v1/ECC/FishingActivities?rssNumber=${params.rssNumber}&landingDate=${params.landingDate}&version=v2`,
-      salesNotes: `/ws/rest/DEFRA/v1/ECC/SalesNotes?rssNumber=${params.rssNumber}&landingDate=${params.landingDate}`,
-      eLogs: `/ws/rest/DEFRA/v1/ECC/elogs?rssNumber=${params.rssNumber}&landingDate=${params.landingDate}`,
-      address: `/ws/rest/DEFRA/v1/address/postcodes?postcode=${encodeURIComponent(params.postcode)}`
+      landing: `/api/ecc/v1.0/LandingDeclarations?rssNumber=${params.rssNumber}&landingDate=${params.landingDate}`,
+      catchActivity: `/api/ecc/v1.0/FishingActivities?rssNumber=${params.rssNumber}&landingDate=${params.landingDate}&version=v2`,
+      salesNotes: `/api/ecc/v1.0/SalesNotes?rssNumber=${params.rssNumber}&landingDate=${params.landingDate}`,
+      eLogs: `/api/ecc/v1.0/elogs?rssNumber=${params.rssNumber}&landingDate=${params.landingDate}`,
+      address: `/api/address-lookup/v1.0/postcodes?postcode=${encodeURIComponent(params.postcode)}`
     }[resourceType]
   }
 
   static async sendRequest(resourceType: resourceType, headers: any, url: string, params: any) {
     const config = getConfig();
 
-    let agent
-    if (config.boomiAuthCertificate) {
-      logger.info(`[BOOMI-SERVICE][${resourceType}][WITH-CERTIFICATE]`)
-      const buff = new Buffer(config.boomiAuthCertificate, 'base64')
-      agent = new https.Agent({
-        pfx: buff,
-        passphrase: config.boomiAuthPassphrase,
-        secureOptions: SSL_OP_LEGACY_SERVER_CONNECT
-      })
-    } else {
-      logger.info(`[BOOMI-SERVICE][${resourceType}][WITHOUT-CERTIFICATE]`)
-      agent = new https.Agent()
-    }
+    logger.info(`[BOOMI-SERVICE][${resourceType}][REQUESTING-OAUTH-TOKEN]`);
+
+    const tokenRequest: IOAuthRequest = {
+      client_id: config.boomiApiOauthClientId,
+      client_secret: config.boomiApiOauthClientSecret,
+      scope: resourceType === 'address' ? config.boomiAddressLookupApiOauthScope : config.boomiLandingApiOauthScope,
+      grant_type: 'client_credentials'
+    };
+
+    const tokenUrl = config.boomiApiOauthTokenUrl;
+    const agent = new https.Agent({
+      secureOptions: SSL_OP_LEGACY_SERVER_CONNECT
+    });
+    
+    const data = querystring.stringify(tokenRequest);
+    const tokenResponse: AxiosResponse<IOAuthResponse> = await axios.post<IOAuthResponse>(
+      tokenUrl,
+      data,
+      {
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        httpsAgent: agent
+      }
+    ).catch(e => {
+      logger.error(`[BOOMI-SERVICE][${resourceType}][ERROR][UNABLE-TO-GET-OAUTH-TOKEN][${e.stack || e}]`);
+      throw new Error(e);
+    });
 
     try {
-      const client = axios.create({
-        baseURL: url,
-        headers: headers,
-        httpsAgent: agent
-      });
       logger.info(`[BOOMI-SERVICE][${resourceType}][API][BASEURL] ${url}`);
 
-      logger.info(`[BOOMI-SERVICE][${resourceType}][API][PARAMS] ${JSON.stringify(params)}`);
+      const callingUrl = `${url}${BoomiService.callingURL(params, resourceType)}`;
 
-      logger.info(`[BOOMI-SERVICE][${resourceType}][AGENT]${JSON.stringify(agent)}`);
+      logger.info(`[BOOMI-SERVICE][${resourceType}][CALLING-URL][${callingUrl}]`);
 
-      const callingUrl = BoomiService.callingURL(params, resourceType);
-
-      logger.info(`[BOOMI-SERVICE][${resourceType}][CALLING-URL]${callingUrl}`);
-
-      const response: AxiosResponse = await client.get(callingUrl, { httpsAgent: agent });
+      const response: AxiosResponse = await axios.get(
+        callingUrl,
+        {
+          headers: {
+            Authorization: `${tokenResponse.data.token_type} ${tokenResponse.data.access_token}`,
+            ...headers
+          },
+          httpsAgent: agent
+        }
+      );
 
       logger.info(`[BOOMI-SERVICE][${resourceType}][RESPONSE-DATA]${JSON.stringify(response.data)}`);
 
       if (!response.data) {
         logger.info(`[BOOMI-SERVICE][${resourceType}][RESPONSE-DATA][NO-DATA]`);
         logger.info(`[BOOMI-SERVICE][${resourceType}][RESPONSE-DATA][NO-DATA][STATUS]`, response.status);
-        logger.info(`[BOOMI-SERVICE][${resourceType}][RESPONSE-DATA][NO-DATA][HEADERS]`, response.headers);
         return null;
       }
 
@@ -110,7 +139,6 @@ export class BoomiService {
       }
       else if (e.response) {
         logger.error(`[BOOMI-SERVICE][${resourceType}][API][ERROR][RESPONSE][STATUS]`, e.response.status);
-        logger.error(`[BOOMI-SERVICE][${resourceType}][API][ERROR][RESPONSE][HEADERS]`, e.response.headers);
         logger.error(`[BOOMI-SERVICE][${resourceType}][API][ERROR][RESPONSE][DATA]`, e.response.data);
 
         throw new Error(`${e.response.status}: ${e.response.statusText}`);

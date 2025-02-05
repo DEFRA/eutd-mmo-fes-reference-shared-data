@@ -13,6 +13,8 @@ export const DocumentStatuses = Object.freeze(
 
 export enum LandingStatus {
   Pending = 'PENDING_LANDING_DATA',
+  Elog = 'ELOG_SPECIES_MISMATCH',
+  LandingOveruse = 'LANDING_DATA_OVERUSED',
   Complete = 'HAS_LANDING_DATA',
   Exceeded14Days = 'EXCEEDED_14_DAY_LIMIT',
   DataNeverExpected = 'LANDING_DATA_NEVER_EXPECTED'
@@ -78,6 +80,12 @@ export interface Catch {
   landingDataExpectedDate?: string;
   landingDataEndDate?: string;
   isLegallyDue?: boolean;
+  vesselRiskScore?: number;
+  exporterRiskScore?: number;
+  speciesRiskScore?: number;
+  threshold?: number;
+  riskScore?: number;
+  isSpeciesRiskEnabled?: boolean;
 }
 
 interface State {

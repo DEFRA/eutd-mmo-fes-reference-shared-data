@@ -18,8 +18,6 @@ const { v4:uuid } = require('uuid');
 jest.mock('uuid');
 jest.mock('axios');
 
-const mockedAxios = axios as jest.Mocked<typeof axios>;
-
 describe('The boomi service', () => {
 
   let mockSendRequest;
@@ -234,29 +232,29 @@ describe('Boomi callingUrl', () => {
 
   it('FishingActivities', () => {
     const result = BoomiService.callingURL({ rssNumber: 'rssNumber', landingDate: '2019-01-01' }, 'catchActivity');
-    expect(result).toBe('/ws/rest/DEFRA/v1/ECC/FishingActivities?rssNumber=rssNumber&landingDate=2019-01-01&version=v2');
+    expect(result).toBe('/api/ecc/v1.0/FishingActivities?rssNumber=rssNumber&landingDate=2019-01-01&version=v2');
   });
 
   it('Landings Dec', () => {
 
     const result = BoomiService.callingURL({ rssNumber: 'rssNumber', landingDate: '2019-01-01' }, 'landing');
-    expect(result).toBe('/ws/rest/DEFRA/v1/ECC/LandingDeclarations?rssNumber=rssNumber&landingDate=2019-01-01');
+    expect(result).toBe('/api/ecc/v1.0/LandingDeclarations?rssNumber=rssNumber&landingDate=2019-01-01');
   });
 
   it('Sales Notes', () => {
 
     const result = BoomiService.callingURL({ rssNumber: 'rssNumber', landingDate: '2019-01-01' }, 'salesNotes');
-    expect(result).toBe('/ws/rest/DEFRA/v1/ECC/SalesNotes?rssNumber=rssNumber&landingDate=2019-01-01');
+    expect(result).toBe('/api/ecc/v1.0/SalesNotes?rssNumber=rssNumber&landingDate=2019-01-01');
   });
 
   it('Elogs', () => {
     const result = BoomiService.callingURL({ rssNumber: 'rssNumber', landingDate: '2019-01-01' }, 'eLogs');
-    expect(result).toBe('/ws/rest/DEFRA/v1/ECC/elogs?rssNumber=rssNumber&landingDate=2019-01-01');
+    expect(result).toBe('/api/ecc/v1.0/elogs?rssNumber=rssNumber&landingDate=2019-01-01');
   });
 
   it('address', () => {
     const result = BoomiService.callingURL({ postcode: 'AB1 1AB' }, 'address');
-    expect(result).toBe('/ws/rest/DEFRA/v1/address/postcodes?postcode=AB1%201AB');
+    expect(result).toBe('/api/address-lookup/v1.0/postcodes?postcode=AB1%201AB');
   });
 
 });
@@ -469,14 +467,31 @@ describe('call sendRequest', () => {
     RequestID: 'some-uuid-user-for-request-id'
   }
 
-  let mockAxiosCreate;
+  const mockOAuthResponse = {
+    token_type: 'Bearer',
+    expires_in: 1234,
+    ext_expires_in: 2345,
+    access_token: 'access token 1234'
+  };
+
+  let mockAxiosPost;
+  let mockAxiosGet;
   let mockLoggerInfo;
   let mockLoggerError;
   let mockConfig;
 
   beforeEach(() => {
-    mockAxiosCreate = jest.spyOn(axios, 'create');
-    mockAxiosCreate.mockImplementation(() => mockedAxios);
+    mockAxiosPost = jest.spyOn(axios, 'post');
+    mockAxiosPost.mockResolvedValue({
+      status: 200,
+      data: mockOAuthResponse
+    });
+
+    mockAxiosGet = jest.spyOn(axios, 'get');
+    mockAxiosGet.mockResolvedValue({
+      status: 200,
+      data: null
+    });
 
     mockLoggerError = jest.spyOn(logger, 'error');
     mockLoggerInfo = jest.spyOn(logger, 'info');
@@ -484,71 +499,74 @@ describe('call sendRequest', () => {
     mockConfig = jest.spyOn(config, 'getConfig');
     mockConfig.mockImplementation(() => ({
       boomiAuthUser: 'ref-boomi-user',
-      boomiAuthCertificate: null,
-      boomiAuthPassphrase: 'ref-boomi-passphrase',
-      boomiUrl: 'boomi-url'
+      boomiUrl: 'boomi-url',
+      boomiApiOauthClientId: 'client-id',
+      boomiApiOauthClientSecret: 'client-secret',
+      boomiApiOauthTokenUrl: 'token-url',
+      boomiAddressLookupApiOauthScope: 'al_scope',
+      boomiLandingApiOauthScope: 'landing-scope',
     }));
   });
 
   afterEach(() => {
-    mockAxiosCreate.mockRestore();
+    mockAxiosPost.mockRestore();
+    mockAxiosGet.mockRestore();
     mockLoggerError.mockRestore();
     mockLoggerInfo.mockRestore();
     mockConfig.mockRestore();
   });
 
-  it('will send without a certificate', async () => {
-    mockedAxios.get.mockResolvedValueOnce({data: null});
+  it('will send request', async () => {
 
     const response = await BoomiService.sendRequest('address', reqHeaders,  "/url", { postcode: 'AB1 1AB' });
 
-    expect(mockAxiosCreate).toHaveBeenCalled();  
-    expect(mockedAxios.get).toHaveBeenCalled();
+    expect(mockAxiosPost).toHaveBeenCalled();  
+    expect(mockAxiosGet).toHaveBeenCalled();
     expect(response).toBeNull();
-    expect(mockLoggerInfo).toHaveBeenCalledWith('[BOOMI-SERVICE][address][WITHOUT-CERTIFICATE]');
+    expect(mockLoggerInfo).toHaveBeenCalledWith('[BOOMI-SERVICE][address][REQUESTING-OAUTH-TOKEN]');
   });
 
-  it('will send with a certificate', async () => {
-    mockConfig.mockImplementation(() => ({
-      boomiAuthUser: 'ref-boomi-user',
-      boomiAuthCertificate: 'ref-boomi-certificate',
-      boomiAuthPassphrase: 'ref-boomi-passphrase',
-      boomiUrl: 'boomi-url'
-    }));
+  it('will send request with landing', async () => {
 
-    mockedAxios.get.mockResolvedValueOnce({data: null});
+    const response = await BoomiService.sendRequest('landing', reqHeaders,  "/url", { postcode: 'AB1 1AB' });
 
-    const response = await BoomiService.sendRequest('address', reqHeaders,  "/url", { postcode: 'AB1 1AB' });
-
-    expect(mockAxiosCreate).toHaveBeenCalled();  
-    expect(mockedAxios.get).toHaveBeenCalled();
+    expect(mockAxiosPost).toHaveBeenCalled();  
+    expect(mockAxiosGet).toHaveBeenCalled();
     expect(response).toBeNull();
-    expect(mockLoggerInfo).toHaveBeenCalledWith('[BOOMI-SERVICE][address][WITH-CERTIFICATE]');
+    expect(mockLoggerInfo).toHaveBeenCalledWith('[BOOMI-SERVICE][landing][REQUESTING-OAUTH-TOKEN]');
+  });
+
+  it('should call the sendRequest and throw token error', async () => {
+    const error = { response: undefined };
+    mockAxiosPost.mockRejectedValue(error);
+
+    await expect(BoomiService.sendRequest('address', reqHeaders,  "/url", { postcode: 'AB1 1AB' })).rejects.toThrow();
+    
+    expect(mockLoggerError).toHaveBeenCalledWith(`[BOOMI-SERVICE][address][ERROR][UNABLE-TO-GET-OAUTH-TOKEN][${error}]`);
   });
 
   it('will return null if no data is found', async () => {
-    mockedAxios.get.mockResolvedValueOnce({data: null});
 
     const response = await BoomiService.sendRequest('address', reqHeaders,  "/url", { postcode: 'AB1 1AB' });
 
-    expect(mockAxiosCreate).toHaveBeenCalled();  
-    expect(mockedAxios.get).toHaveBeenCalled();
+    expect(mockAxiosPost).toHaveBeenCalled();  
+    expect(mockAxiosGet).toHaveBeenCalled();
     expect(response).toBeNull();
   });
 
   it('will return landing data if found', async () => {
-    mockedAxios.get.mockResolvedValueOnce({data: { landingData: 'landing declaration' }});
+    mockAxiosGet.mockResolvedValueOnce({data: { landingData: 'landing declaration' }});
 
     const response = await BoomiService.sendRequest('address', reqHeaders,  "/url", { postcode: 'AB1 1AB' });
 
-    expect(mockAxiosCreate).toHaveBeenCalled();  
-    expect(mockedAxios.get).toHaveBeenCalled();
+    expect(mockAxiosPost).toHaveBeenCalled();  
+    expect(mockAxiosGet).toHaveBeenCalled();
     expect(response).toEqual({ landingData: 'landing declaration' });
   });
 
   it('should call the sendRequest and log error', async () => {
     const error = { response: null };
-    mockedAxios.get.mockRejectedValue(error);
+    mockAxiosGet.mockRejectedValue(error);
 
     const response = await BoomiService.sendRequest('address', reqHeaders,  "/url", { postcode: 'AB1 1AB' });
     
@@ -558,7 +576,7 @@ describe('call sendRequest', () => {
 
   it('should call the sendRequest and throw error', async () => {
     const error = { response: undefined };
-    mockedAxios.get.mockRejectedValue(error);
+    mockAxiosGet.mockRejectedValue(error);
 
     await expect(BoomiService.sendRequest('address', reqHeaders,  "/url", { postcode: 'AB1 1AB' })).rejects.toThrow();
     
@@ -572,13 +590,12 @@ describe('call sendRequest', () => {
       headers: { x_header: 'something' },
       data: { landing: 'error' }
     }}
-    mockedAxios.get.mockRejectedValue(error);
+    mockAxiosGet.mockRejectedValue(error);
 
     await expect(BoomiService.sendRequest('address', reqHeaders,  "/url", { postcode: 'AB1 1AB' })).rejects.toThrow();
     
     expect(mockLoggerError).toHaveBeenCalledWith(`[BOOMI-SERVICE][address][API][ERROR] ${error}`);
     expect(mockLoggerError).toHaveBeenCalledWith("[BOOMI-SERVICE][address][API][ERROR][RESPONSE][STATUS]", 504);
-    expect(mockLoggerError).toHaveBeenCalledWith("[BOOMI-SERVICE][address][API][ERROR][RESPONSE][HEADERS]", {"x_header": "something"});
     expect(mockLoggerError).toHaveBeenCalledWith("[BOOMI-SERVICE][address][API][ERROR][RESPONSE][DATA]", { "landing": 'error' });
   });
 
