@@ -10,85 +10,20 @@ trigger:
       - 'develop'
       - 'feature/FI0-*'
 
-# variables:
+parameters:
+  - name: deployFromFeatureBranch
+    displayName: 'Deploy from Feature Branch'
+    type: boolean
+    default: false
 
 resources:
   repositories:
-    - repository: CentralAdoPipelineTemplates
-      # endpoint: defradev
-      name: DEFRA-MMO-FES/mmo-fes-central-ado-pipeline-templates
+    - repository: MMOPipelineCommon
+      name: mmo-fes-pipeline-common
       type: git
       ref: main
-  
 
 stages:
-- stage: BuildPublishPackage
-  jobs:
-  - job: BuildPublishPackage
-    steps:
-    - task: npmAuthenticate@0
-      displayName: Authenticate .npmrc file
-      inputs:
-        workingFile: .npmrc
-
-    - task: NodeTool@0
-      inputs:
-        versionSpec: '18.16.1'
-      displayName: 'Install Node.js'
-
-    - task: Npm@1
-      inputs:
-        command: 'custom'
-        customCommand: 'install -g npm-audit-ci'
-      displayName: 'NPM install audit-ci'
-
-    - task: Npm@1
-      inputs:
-        command: 'ci'
-      displayName: 'npm ci'
-
-    - task: Npm@1
-      inputs:
-        command: 'custom'
-        customCommand: 'run test:ci'
-      displayName: 'Test'
-
-    - task: Bash@3
-      inputs:
-        targetType: 'inline'
-        script: |
-          echo "Running audit checks - should fail on critical issues only"
-          npm-audit-ci -c
-      displayName: 'Audit'
-
-    - task: PublishTestResults@2
-      displayName: 'Publish Test Results'
-      inputs:
-        testResultsFiles: '$(Build.SourcesDirectory)/test-results/junit.xml'  
-
-    - task: PublishPipelineArtifact@1
-      displayName: Publish code coverage
-      condition: succeeded()
-      inputs:
-        targetPath: '$(Build.SourcesDirectory)/coverage'
-        artifact: 'coverage'
-        publishLocation: 'pipeline'
-
-    - task: PublishCodeCoverageResults@1
-      displayName: 'Publish Code Coverage Results'
-      inputs:
-        codeCoverageTool: Cobertura
-        summaryFileLocation: '$(System.DefaultWorkingDirectory)/**/cobertura-coverage.xml'
-        reportDirectory: '$(System.DefaultWorkingDirectory)/**/coverage'  
-
-    - task: Npm@1
-      condition:  and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/heads/main'))
-      continueOnError: true
-      inputs:
-        command: publish
-        publishRegistry: useFeed
-        publishFeed: DEFRA-MMO-FES/mmo-shared-reference-data
-      displayName: Publish Feed
-      
-# Central mmo-central-ado-pipeline-templates reference
-- template: /includes/sonar-integration-template.yml@CentralAdoPipelineTemplates 
+  - template: /includes/npm-package-build-publish.yaml@MMOPipelineCommon
+    parameters:
+      deployFromFeatureBranch: ${{ parameters.deployFromFeatureBranch }}
