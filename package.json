@@ -1,6 +1,6 @@
 {
   "name": "mmo-shared-reference-data",
-  "version": "1.1.0-beta",
+  "version": "1.2.0",
   "description": "Shared repo which holds common code of reference data reader and batch data repo",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
@@ -32,13 +32,13 @@
     "prettier": "^3.2.5",
     "sinon": "17.0.1",
     "ts-jest": "^29.1.4",
-    "tsup": "8.0.2",
+    "tsup": "8.4.0",
     "typescript": "^4.9.5"
   },
   "dependencies": {
     "@azure/service-bus": "^7.9.4",
     "ajv": "^6.12.6",
-    "axios": "^1.6.8",
+    "axios": "1.7.4",
     "bunyan": "1.8.15",
     "cross-env": "7.0.3",
     "csvtojson": "2.0.10",
