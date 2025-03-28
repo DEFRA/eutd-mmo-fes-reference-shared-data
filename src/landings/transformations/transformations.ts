@@ -195,6 +195,7 @@ export function* unwindCatchCerts(catchCerts) {
           factor: product.factor ? product.factor : 1,
           pln: caughtBy.pln,
           date: moment(caughtBy.date).format('YYYY-MM-DD'),
+          startDate: caughtBy.startDate,
           weight: caughtBy.weight,
           extended: {
             exporterContactId: exportData.exporterDetails ? exportData.exporterDetails.contactId : undefined,
@@ -257,7 +258,7 @@ export function* mapCatchCerts(unwoundCatchCerts, licenceLookup) {
   /*
    * Clean up the unwould catch certificates
    */
-  for (const { documentNumber, createdAt, status, speciesCode, factor, pln, date, weight, extended } of unwoundCatchCerts) {
+  for (const { documentNumber, createdAt, status, speciesCode, factor, pln, startDate, date, weight, extended } of unwoundCatchCerts) {
     const licence = licenceLookup(pln, date);
     const rssNumber = licence ? licence.rssNumber : undefined
     yield {
@@ -265,6 +266,7 @@ export function* mapCatchCerts(unwoundCatchCerts, licenceLookup) {
       createdAt,
       status,
       rssNumber,
+      startDate,
       dateLanded: date,
       species: speciesCode,
       factor: factor,

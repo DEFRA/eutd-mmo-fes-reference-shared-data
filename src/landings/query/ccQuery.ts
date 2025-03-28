@@ -192,6 +192,7 @@ export function* ccQuery(
             r.extended = item.extended
             r.rssNumber = item.rssNumber
             r.da = item.da
+            r.startDate = item.startDate
             r.dateLanded = item.dateLanded
             r.species = item.species
             r.weightFactor = item.factor

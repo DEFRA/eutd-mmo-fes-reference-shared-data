@@ -68,6 +68,7 @@ export interface IBaseLanding {
 
 export interface IDynamicsLanding extends IBaseLanding {
     status: LandingStatusType;
+    startDate?: string; 
 }
 
 export interface IDynamicsLandingValidation {

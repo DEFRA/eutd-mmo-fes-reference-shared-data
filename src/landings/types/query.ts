@@ -8,6 +8,8 @@ export interface ICcQueryResult {
   createdAt: string;
   rssNumber: string;
   da: string;
+  // Fishing trip start date
+  startDate?: string;
   dateLanded: string;
   species: string;
   weightFactor: number;

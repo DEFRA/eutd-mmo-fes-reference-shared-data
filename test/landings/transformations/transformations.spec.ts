@@ -2218,13 +2218,14 @@ describe('on groupCatchCertsByLanding', () => {
 describe('mapCatchCerts', () => {
   it('will surface the factor applied to the weight', () => {
     const unwoundCertificates = [
-      { documentNumber: 'CC1', status: 'COMPLETE', createdAt: '2019-07-10T08:26:06.939Z', speciesCode: 'LBE', factor: 1, pln: 'WA1', date: '2019-07-10', weight: 100, extended: { vesselOverriddenByAdmin: undefined,speciesOverriddenByAdmin:false } }
+      { documentNumber: 'CC1', status: 'COMPLETE', createdAt: '2019-07-10T08:26:06.939Z', speciesCode: 'LBE', factor: 1, pln: 'WA1', startDate: '2019-07-10', date: '2019-07-10', weight: 100, extended: { vesselOverriddenByAdmin: undefined,speciesOverriddenByAdmin:false } }
     ];
 
     const result = Array.from(Transformations.mapCatchCerts(unwoundCertificates, () => true));
 
     expect(result).toStrictEqual([{
       createdAt: "2019-07-10T08:26:06.939Z",
+      startDate: "2019-07-10",
       dateLanded: "2019-07-10",
       da: undefined,
       documentNumber: "CC1",
@@ -2248,7 +2249,7 @@ describe('mapCatchCerts', () => {
 
   it('will surface the licence details for the vessel', () => {
     const unwoundCertificates = [
-      { documentNumber: 'CC1', status: 'COMPLETE', createdAt: '2019-07-10T08:26:06.939Z', speciesCode: 'LBE', factor: 1, pln: 'WA1', date: '2019-07-10', weight: 100, extended: { vesselOverriddenByAdmin: undefined,  speciesOverriddenByAdmin:false } }
+      { documentNumber: 'CC1', status: 'COMPLETE', createdAt: '2019-07-10T08:26:06.939Z', speciesCode: 'LBE', factor: 1, pln: 'WA1', startDate: '2019-07-10', date: '2019-07-10', weight: 100, extended: { vesselOverriddenByAdmin: undefined,  speciesOverriddenByAdmin:false } }
     ];
 
     const result = Array.from(Transformations.mapCatchCerts(unwoundCertificates, () => ({
@@ -2264,6 +2265,7 @@ describe('mapCatchCerts', () => {
 
     expect(result).toStrictEqual([{
       createdAt: "2019-07-10T08:26:06.939Z",
+      startDate: "2019-07-10",
       dateLanded: "2019-07-10",
       da: 'England',
       documentNumber: "CC1",
@@ -2287,7 +2289,7 @@ describe('mapCatchCerts', () => {
 
   it('will surface the admin licence holder', () => {
     const unwoundCertificates = [
-      { documentNumber: 'CC1', status: 'COMPLETE', createdAt: '2019-07-10T08:26:06.939Z', speciesCode: 'LBE', factor: 1, pln: 'WA1', date: '2019-07-10', weight: 100, extended: { vesselOverriddenByAdmin: true, speciesOverriddenByAdmin:false, licenceHolder: 'Admin added licence holder' } }
+      { documentNumber: 'CC1', status: 'COMPLETE', createdAt: '2019-07-10T08:26:06.939Z', speciesCode: 'LBE', factor: 1, pln: 'WA1', startDate: '2019-07-10', date: '2019-07-10', weight: 100, extended: { vesselOverriddenByAdmin: true, speciesOverriddenByAdmin:false, licenceHolder: 'Admin added licence holder' } }
     ];
 
     const result = Array.from(Transformations.mapCatchCerts(unwoundCertificates, () => ({
@@ -2303,6 +2305,7 @@ describe('mapCatchCerts', () => {
 
     expect(result).toStrictEqual([{
       createdAt: "2019-07-10T08:26:06.939Z",
+      startDate: "2019-07-10",
       dateLanded: "2019-07-10",
       da: 'England',
       documentNumber: "CC1",
