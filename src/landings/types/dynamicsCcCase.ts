@@ -30,6 +30,7 @@ export interface IDynamicsCatchCertificateCase {
 
 export interface IBaseLanding {
     id: string;
+    startDate?: string;
     landingDate: string;
     is14DayLimitReached: boolean;
     species: string;
@@ -68,7 +69,6 @@ export interface IBaseLanding {
 
 export interface IDynamicsLanding extends IBaseLanding {
     status: LandingStatusType;
-    startDate?: string; 
 }
 
 export interface IDynamicsLandingValidation {
