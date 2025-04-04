@@ -31,7 +31,7 @@ export const daLookUp = postCodeDaLookup(postCodeToDa);
 export const getIsLegallyDue = (rawValidatedLanding: ICcQueryResult) =>
    (rawValidatedLanding.extended.vesselOverriddenByAdmin && !rawValidatedLanding.rssNumber) ? false : rawValidatedLanding.extended.isLegallyDue
 
-export function toCcDefraReport(documentNumber: string, correlationId: string, status: string, requestByAdmin: boolean, vesselsIdx: (pln: string) => any, catchCert?: IDocument): IDefraValidationCatchCertificate {
+export function toCcDefraReport(documentNumber: string, correlationId: string, status: string, requestByAdmin: boolean, vesselsIdx?: (pln: string) => any, catchCert?: IDocument): IDefraValidationCatchCertificate {
    const result: IDefraValidationCatchCertificate = {
       documentType: "CatchCertificate",
       documentNumber: documentNumber,
@@ -113,7 +113,7 @@ export function toCcDefraReport(documentNumber: string, correlationId: string, s
 }
 
 export function toDefraCcLanding(product: Product | undefined, transportation: Transport, createdAt: string, vesselsIdx: (pln: string) => any): CertificateLanding[] {
-   return (product && product.caughtBy) ? product.caughtBy.map((landing: Catch) => {
+   return (product?.caughtBy) ? product.caughtBy.map((landing: Catch) => {
       const licenceLookup = vesselLookup(vesselsIdx);
       const licence: ILicence = licenceLookup(landing.pln, landing.date);
       return {
