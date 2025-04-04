@@ -2976,6 +2976,10 @@ describe('when mapping isLandingDataLate', () => {
   it('will return undefined', () => {
     expect(SUT.isLandingDataLate('invalid date', 'invalid date')).toBeUndefined();
   })
+
+  it('will return true', () => {
+    expect(SUT.isLandingDataLate('04-01-2020', '03-01-2020')).toBe(true);
+  })
 });
 
 describe('when mapping level of risk', () => {

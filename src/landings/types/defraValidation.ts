@@ -1,4 +1,5 @@
 import { ICountry } from './appConfig/countries';
+import { DefraCcLandingStatusType, IDynamicsRisk, LandingOutcomeType, LandingRetrospectiveOutcomeType } from './dynamicsCcCase';
 
 export interface IDefraValidationReport  {
     certificateId:      string;
@@ -126,6 +127,7 @@ export interface CertificateLandingVessel {
 }
 
 export interface CertificateLanding {
+    startDate?: string;
     date: string;
     species: CertificateFish;
     state: CertificateFish;
@@ -163,6 +165,11 @@ export interface CertificateLanding {
     adminPresentation?: string;
     adminCommodityCode?: string;
     speciesOverriddenByAdmin?: boolean;
+    risking?: IDynamicsRisk;
+    landingValidationstatusAtSubmission?: DefraCcLandingStatusType; 
+    landingOutcomeAtSubmission?: LandingOutcomeType; 
+    landingValidationstatusAtRetrospective?: DefraCcLandingStatusType;
+    landingOutcomeAtRetrospectiveCheck?: LandingRetrospectiveOutcomeType;
 }
 
 interface Created {

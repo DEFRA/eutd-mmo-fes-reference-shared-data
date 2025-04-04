@@ -8,33 +8,32 @@ import {
    CertificateLanding
 } from '../types/defraValidation';
 import {
-  ICcQueryResult,
-  ICcBatchValidationReport
+   ICcQueryResult
 } from "../types/query";
 import { IAuditEvent } from '../types/auditEvent';
 import { getConfig } from '../../config';
 import { postCodeToDa, postCodeDaLookup } from '../../data/authorities';
-import { ccBatchReport, isElog, isInRetrospectivePeriod, isWithinDeminimus, TRANSPORT_VEHICLE_DIRECT } from '../query';
+import { isElog, isInRetrospectivePeriod, isWithinDeminimus, TRANSPORT_VEHICLE_DIRECT } from '../query';
 import type { Catch, Product, Transport, IDocument } from '../types/document';
 import { vesselLookup } from './transformations';
 import { ILicence } from '../types/appConfig/vessels';
-import { isLandingDataExpectedAtSubmission, isLandingDataLate } from './dynamicsValidation';
+import { isLandingDataExpectedAtSubmission } from './dynamicsValidation';
 import { DefraCcLandingStatusType } from '../types/dynamicsCcCase';
 
-const TRANSPORT_VEHICLE_TRUCK  = 'truck';
-const TRANSPORT_VEHICLE_TRAIN  = 'train';
-const TRANSPORT_VEHICLE_PLANE  = 'plane';
+const TRANSPORT_VEHICLE_TRUCK = 'truck';
+const TRANSPORT_VEHICLE_TRAIN = 'train';
+const TRANSPORT_VEHICLE_PLANE = 'plane';
 const TRANSPORT_VEHICLE_VESSEL = 'vessel';
 const TRANSPORT_VEHICLE_CONTAINER_VESSEL = 'containerVessel';
 
 export const daLookUp = postCodeDaLookup(postCodeToDa);
 
 export const getIsLegallyDue = (rawValidatedLanding: ICcQueryResult) =>
-  (rawValidatedLanding.extended.vesselOverriddenByAdmin && !rawValidatedLanding.rssNumber) ? false : rawValidatedLanding.extended.isLegallyDue
+   (rawValidatedLanding.extended.vesselOverriddenByAdmin && !rawValidatedLanding.rssNumber) ? false : rawValidatedLanding.extended.isLegallyDue
 
-export function toCcDefraReport(documentNumber: string, correlationId: string, status: string, requestByAdmin: boolean, vesselsIdx: (pln: string) => any, catchCert?: IDocument) : IDefraValidationCatchCertificate {
-   const result : IDefraValidationCatchCertificate = {
-      documentType : "CatchCertificate",
+export function toCcDefraReport(documentNumber: string, correlationId: string, status: string, requestByAdmin: boolean, vesselsIdx: (pln: string) => any, catchCert?: IDocument): IDefraValidationCatchCertificate {
+   const result: IDefraValidationCatchCertificate = {
+      documentType: "CatchCertificate",
       documentNumber: documentNumber,
       status: status,
       _correlationId: correlationId,
@@ -64,8 +63,8 @@ export function toCcDefraReport(documentNumber: string, correlationId: string, s
             const exporterDetails: CertificateExporterAndCompany = {
                fullName: exportData.exporterDetails.exporterFullName,
                companyName: exportData.exporterDetails.exporterCompanyName,
-               contactId : exportData.exporterDetails.contactId,
-               accountId : exportData.exporterDetails.accountId,
+               contactId: exportData.exporterDetails.contactId,
+               accountId: exportData.exporterDetails.accountId,
                address: {
                   building_number: exportData.exporterDetails.buildingNumber,
                   sub_building_name: exportData.exporterDetails.subBuildingName,
@@ -77,7 +76,7 @@ export function toCcDefraReport(documentNumber: string, correlationId: string, s
                   city: exportData.exporterDetails.townCity,
                   postCode: exportData.exporterDetails.postcode
                },
-               dynamicsAddress : exportData.exporterDetails._dynamicsAddress
+               dynamicsAddress: exportData.exporterDetails._dynamicsAddress
             };
 
             result.exporterDetails = exporterDetails;
@@ -97,15 +96,15 @@ export function toCcDefraReport(documentNumber: string, correlationId: string, s
             }
          }
 
-         if(exportData.transportation) {
+         if (exportData.transportation) {
             result.transportation = toTransportation(exportData.transportation);
             result.exportedFrom = exportData.transportation.exportedFrom;
             result.exportedTo = exportData.transportation.exportedTo;
          }
 
          if (exportData.products && exportData.products.length > 0) {
-          result.landings = exportData.products.flatMap((product: Product) =>
-              toDefraCcLanding(product, exportData.transportation, catchCert.createdAt?.toISOString(), vesselsIdx));
+            result.landings = exportData.products.flatMap((product: Product) =>
+               toDefraCcLanding(product, exportData.transportation, catchCert.createdAt?.toISOString(), vesselsIdx));
          }
       }
    }
@@ -115,52 +114,53 @@ export function toCcDefraReport(documentNumber: string, correlationId: string, s
 
 export function toDefraCcLanding(product: Product | undefined, transportation: Transport, createdAt: string, vesselsIdx: (pln: string) => any): CertificateLanding[] {
    return (product && product.caughtBy) ? product.caughtBy.map((landing: Catch) => {
-    const licenceLookup = vesselLookup(vesselsIdx);
-    const licence: ILicence = licenceLookup(landing.pln, landing.date);
-    return {
-      date: landing.date,
-      species: {
-         name: product.species,
-         code: product.speciesCode,
-         scientificName: product.scientificName
-      },
-      state: {
-         name: product.state.name,
-         code: product.state.code,
-      },
-      presentation: {
-         name: product.presentation.name,
-         code: product.presentation.code,
-      },
-      cnCode: product.commodityCode,
-      cnCodeDesc: product.commodityCodeDescription,
-      vessel: {
-         name: landing.vessel,
-         pln: landing.pln,
-         length: licence ? licence.vesselLength : undefined,
-         fao: landing.faoArea,
-         flag: landing.flag,
-         cfr: landing.cfr
-      },
-      exportWeight: landing.weight,
-      isDirectLanding: (transportation?.vehicle === TRANSPORT_VEHICLE_DIRECT),
-      vesselAdministration: licence ? licence.da : undefined,
-      dataEverExpected: landing.dataEverExpected,
-      landingDataExpectedDate: landing.landingDataExpectedDate,
-      landingDataEndDate: landing.landingDataEndDate,
-      landingDataExpectedAtSubmission: (createdAt !== undefined && landing.landingDataExpectedDate !== undefined) ? moment.utc(createdAt).isSameOrAfter(moment.utc(landing.landingDataExpectedDate), 'day') : undefined,
-      speciesAdmin: product.speciesAdmin,
-      adminState: product.state.admin,
-      adminPresentation: product.presentation.admin,
-      adminCommodityCode: product.commodityCodeAdmin,
-      speciesOverriddenByAdmin: product.speciesOverriddenByAdmin,
-   }
+      const licenceLookup = vesselLookup(vesselsIdx);
+      const licence: ILicence = licenceLookup(landing.pln, landing.date);
+      return {
+         startDate: landing.startDate,
+         date: landing.date,
+         species: {
+            name: product.species,
+            code: product.speciesCode,
+            scientificName: product.scientificName
+         },
+         state: {
+            name: product.state.name,
+            code: product.state.code,
+         },
+         presentation: {
+            name: product.presentation.name,
+            code: product.presentation.code,
+         },
+         cnCode: product.commodityCode,
+         cnCodeDesc: product.commodityCodeDescription,
+         vessel: {
+            name: landing.vessel,
+            pln: landing.pln,
+            length: licence ? licence.vesselLength : undefined,
+            fao: landing.faoArea,
+            flag: landing.flag,
+            cfr: landing.cfr
+         },
+         exportWeight: landing.weight,
+         isDirectLanding: (transportation?.vehicle === TRANSPORT_VEHICLE_DIRECT),
+         vesselAdministration: licence ? licence.da : undefined,
+         dataEverExpected: landing.dataEverExpected,
+         landingDataExpectedDate: landing.landingDataExpectedDate,
+         landingDataEndDate: landing.landingDataEndDate,
+         landingDataExpectedAtSubmission: (createdAt !== undefined && landing.landingDataExpectedDate !== undefined) ? moment.utc(createdAt).isSameOrAfter(moment.utc(landing.landingDataExpectedDate), 'day') : undefined,
+         speciesAdmin: product.speciesAdmin,
+         adminState: product.state.admin,
+         adminPresentation: product.presentation.admin,
+         adminCommodityCode: product.commodityCodeAdmin,
+         speciesOverriddenByAdmin: product.speciesOverriddenByAdmin
+      }
    }) : [];
 }
 
-export function toDefraAudit(systemAudit: IAuditEvent) : CertificateAudit {
-   const result : CertificateAudit = {
-      auditOperation : systemAudit.eventType,
+export function toDefraAudit(systemAudit: IAuditEvent): CertificateAudit {
+   const result: CertificateAudit = {
+      auditOperation: systemAudit.eventType,
       user: systemAudit.triggeredBy,
       auditAt: systemAudit.timestamp,
       investigationStatus: systemAudit.data && systemAudit.data.investigationStatus ? systemAudit.data.investigationStatus : undefined
@@ -169,8 +169,8 @@ export function toDefraAudit(systemAudit: IAuditEvent) : CertificateAudit {
    return result;
 }
 
-export function toTransportation(transportation) : CertificateTransport {
-   if(transportation === undefined)
+export function toTransportation(transportation): CertificateTransport {
+   if (transportation === undefined)
       return undefined;
 
    switch (transportation.vehicle) {
@@ -216,73 +216,6 @@ export function toTransportation(transportation) : CertificateTransport {
    }
 }
 
-export function toLandings(queryRes: ICcQueryResult[], vesselsIdx: (pln: string) => any): CertificateLanding[] {
-
-   return queryRes.map((rawValidatedLanding: ICcQueryResult) => {
-
-      const ccBatchReportForLanding : ICcBatchValidationReport = Array.from(ccBatchReport([rawValidatedLanding][Symbol.iterator]()))[0]
-      const licenceLookup = vesselLookup(vesselsIdx);
-      const licence: ILicence = licenceLookup(rawValidatedLanding.extended.pln, rawValidatedLanding.dateLanded);
-
-      return {
-         date: rawValidatedLanding.dateLanded,
-         species: {
-            name: rawValidatedLanding.extended.species,
-            code: rawValidatedLanding.species,
-            scientificName: rawValidatedLanding.extended.scientificName
-         },
-         state: {
-            name: rawValidatedLanding.extended.stateName,
-            code: rawValidatedLanding.extended.state
-         },
-         presentation: {
-            name: rawValidatedLanding.extended.presentationName,
-            code: rawValidatedLanding.extended.presentation
-         },
-         cnCode: rawValidatedLanding.extended.commodityCode,
-         cnCodeDesc: rawValidatedLanding.extended.commodityCodeDescription,
-         vessel: {
-            name: rawValidatedLanding.extended.vessel,
-            pln: rawValidatedLanding.extended.pln,
-            length: licence ? licence.vesselLength : null,
-            fao: rawValidatedLanding.extended.fao,
-            flag: rawValidatedLanding.extended.flag,
-            cfr: rawValidatedLanding.extended.cfr
-         },
-         exportWeight: rawValidatedLanding.weightOnCert,
-         exportWeightFactor: rawValidatedLanding.weightFactor,
-         isLandingDataAvailable: rawValidatedLanding.numberOfLandingsOnDay > 0,
-         isDirectLanding: ccBatchReportForLanding.directLanding === 'Y',
-         isValidationFailed: ccBatchReportForLanding.FI0_136_numberOfFailedValidations > 0,
-         isSpeciesMisMatch: rawValidatedLanding.isLandingExists ? ccBatchReportForLanding.FI0_289_speciesMismatch === 'Fail' : false,
-         isExporterLandingOveruse: rawValidatedLanding.isOverusedThisCert,
-         isOveruse: rawValidatedLanding.isOverusedAllCerts,
-         rss: rawValidatedLanding.rssNumber,
-         isNoLandingDataTimeExceeded: ccBatchReportForLanding.FI0_47_unavailabilityExceeds14Days === 'Fail',
-         landingBreakdown: rawValidatedLanding.landingTotalBreakdown,
-         totalWeightRecordedAgainstLanding: rawValidatedLanding.weightOnLanding,
-         daysWithNoLandingData: ccBatchReportForLanding.FI0_41_unavailabilityDuration,
-         landedWeightExceededAmount: ccBatchReportForLanding.exportedWeightExceedingEstimateLandedWeight ? Number(ccBatchReportForLanding.exportedWeightExceedingEstimateLandedWeight) : Number(ccBatchReportForLanding.FI0_290_exportedWeightExceedingLandedWeight),
-         totalWeightExported: rawValidatedLanding.weightOnAllCerts,
-         rawLandingsDataUrl:  ccBatchReportForLanding.rawLandingsUrl.replace('{BASE_URL}', getConfig().internalAppUrl),
-         rawSalesNotesDataUrl: ccBatchReportForLanding.salesNotesUrl.replace('{BASE_URL}', getConfig().internalAppUrl),
-         isLegallyDue: getIsLegallyDue(rawValidatedLanding),
-         vesselAdministration: rawValidatedLanding.da,
-         dataEverExpected: rawValidatedLanding.extended.dataEverExpected,
-         landingDataExpectedDate: rawValidatedLanding.extended.landingDataExpectedDate,
-         landingDataEndDate: rawValidatedLanding.extended.landingDataEndDate,
-         landingDataExpectedAtSubmission: (rawValidatedLanding.createdAt !== undefined && rawValidatedLanding.extended.landingDataExpectedDate !== undefined) ? moment.utc(rawValidatedLanding.createdAt).isSameOrAfter(moment.utc(rawValidatedLanding.extended.landingDataExpectedDate), 'day') : undefined,
-         isLate: rawValidatedLanding.extended.dataEverExpected ? isLandingDataLate(rawValidatedLanding.firstDateTimeLandingDataRetrieved, rawValidatedLanding.extended.landingDataExpectedDate) : undefined,
-         dateDataReceived: rawValidatedLanding.firstDateTimeLandingDataRetrieved,
-         adminSpecies: rawValidatedLanding.extended.speciesAdmin,
-         adminPresentation: rawValidatedLanding.extended.presentationAdmin,
-         adminState: rawValidatedLanding.extended.stateAdmin,
-         adminCommodityCode: rawValidatedLanding.extended.commodityCodeAdmin,
-         speciesOverriddenByAdmin: rawValidatedLanding.extended.speciesOverriddenByAdmin
-      }
-   });
-}
-
 const hasLandingExists: (ccQuery: ICcQueryResult) => DefraCcLandingStatusType = (ccQuery: ICcQueryResult) => {
    let output: DefraCcLandingStatusType;
 
@@ -307,7 +240,7 @@ const hasLandingExists: (ccQuery: ICcQueryResult) => DefraCcLandingStatusType = 
    return output;
 }
 
-const getPendingLandingStatus: (ccQuery: ICcQueryResult) => DefraCcLandingStatusType = (ccQuery: ICcQueryResult) => 
+const getPendingLandingStatus: (ccQuery: ICcQueryResult) => DefraCcLandingStatusType = (ccQuery: ICcQueryResult) =>
    isLandingDataExpectedAtSubmission(ccQuery.createdAt, ccQuery.extended.landingDataExpectedDate) ? DefraCcLandingStatusType.PendingLandingData_DataExpected : DefraCcLandingStatusType.PendingLandingData_DataNotYetExpected;
 
 export function toDefraCcLandingStatus(ccQuery: ICcQueryResult, isHighRisk: boolean): DefraCcLandingStatusType {

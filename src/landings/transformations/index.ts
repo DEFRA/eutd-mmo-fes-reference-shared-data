@@ -1,7 +1,6 @@
 export {
   getIsLegallyDue,
   toCcDefraReport,
-  toLandings,
   toDefraCcLandingStatus
 } from './defraValidation';
 export {
