@@ -1,4 +1,5 @@
 import axios from "axios";
+import jwt from "jsonwebtoken";
 import { BoomiService, IBoomiAddressResponse } from '../../src/services/boomi.service';
 import {
   mockLandingData,
@@ -17,6 +18,7 @@ const { v4:uuid } = require('uuid');
 
 jest.mock('uuid');
 jest.mock('axios');
+jest.mock('jsonwebtoken');
 
 describe('The boomi service', () => {
 
@@ -474,13 +476,26 @@ describe('call sendRequest', () => {
     access_token: 'access token 1234'
   };
 
+  const decoded = {
+    exp: 1487076708,
+    iat: 1485137384,
+    iss: "acme.com",
+    sub: "29ac0c18-0b4a-42cf-82fc-03d570318a1d",
+    applicationId: "79103734-97ab-4d1a-af37-e006d05d2952",
+    roles: []
+  }
+
+  let mockJWTDecode;
   let mockAxiosPost;
   let mockAxiosGet;
   let mockLoggerInfo;
   let mockLoggerError;
   let mockConfig;
+  let mockDateNow;
 
   beforeEach(() => {
+    mockJWTDecode = jest.spyOn(jwt, 'decode');
+    mockJWTDecode.mockReturnValue(decoded);
     mockAxiosPost = jest.spyOn(axios, 'post');
     mockAxiosPost.mockResolvedValue({
       status: 200,
@@ -506,14 +521,20 @@ describe('call sendRequest', () => {
       boomiAddressLookupApiOauthScope: 'al_scope',
       boomiLandingApiOauthScope: 'landing-scope',
     }));
+
+    mockDateNow = jest.spyOn(Date, 'now').mockImplementation(() => 1485140984000);  
   });
 
   afterEach(() => {
+    BoomiService.accessToken = undefined;
+
+    mockJWTDecode.mockRestore();
     mockAxiosPost.mockRestore();
     mockAxiosGet.mockRestore();
     mockLoggerError.mockRestore();
     mockLoggerInfo.mockRestore();
     mockConfig.mockRestore();
+    mockDateNow.mockRestore();
   });
 
   it('will send request', async () => {
@@ -527,6 +548,18 @@ describe('call sendRequest', () => {
   });
 
   it('will send request with landing', async () => {
+
+    const response = await BoomiService.sendRequest('landing', reqHeaders,  "/url", { postcode: 'AB1 1AB' });
+
+    expect(mockAxiosPost).toHaveBeenCalled();  
+    expect(mockAxiosGet).toHaveBeenCalled();
+    expect(response).toBeNull();
+    expect(mockLoggerInfo).toHaveBeenCalledWith('[BOOMI-SERVICE][landing][REQUESTING-OAUTH-TOKEN]');
+  });
+
+  it('will refresh token with landing data', async () => {
+    BoomiService.accessToken = 'some-access-token';
+    mockDateNow = jest.spyOn(Date, 'now').mockImplementation(() => 1743795574000);  
 
     const response = await BoomiService.sendRequest('landing', reqHeaders,  "/url", { postcode: 'AB1 1AB' });
 
@@ -570,7 +603,7 @@ describe('call sendRequest', () => {
 
     const response = await BoomiService.sendRequest('address', reqHeaders,  "/url", { postcode: 'AB1 1AB' });
     
-    expect(mockLoggerError).toHaveBeenCalledWith(`[BOOMI-SERVICE][address][API][ERROR] ${error}`);
+    expect(mockLoggerError).toHaveBeenCalledWith(`[BOOMI-SERVICE][address][API][ERROR][${error}]`);
     expect(response).toBeUndefined();
   });
 
@@ -580,7 +613,7 @@ describe('call sendRequest', () => {
 
     await expect(BoomiService.sendRequest('address', reqHeaders,  "/url", { postcode: 'AB1 1AB' })).rejects.toThrow();
     
-    expect(mockLoggerError).toHaveBeenCalledWith(`[BOOMI-SERVICE][address][API][ERROR] ${error}`);
+    expect(mockLoggerError).toHaveBeenCalledWith(`[BOOMI-SERVICE][address][API][ERROR][${error}]`);
   });
 
   it('should call the sendRequest and throw specific error', async () => {
@@ -594,9 +627,45 @@ describe('call sendRequest', () => {
 
     await expect(BoomiService.sendRequest('address', reqHeaders,  "/url", { postcode: 'AB1 1AB' })).rejects.toThrow();
     
-    expect(mockLoggerError).toHaveBeenCalledWith(`[BOOMI-SERVICE][address][API][ERROR] ${error}`);
+    expect(mockLoggerError).toHaveBeenCalledWith(`[BOOMI-SERVICE][address][API][ERROR][${error}]`);
     expect(mockLoggerError).toHaveBeenCalledWith("[BOOMI-SERVICE][address][API][ERROR][RESPONSE][STATUS]", 504);
     expect(mockLoggerError).toHaveBeenCalledWith("[BOOMI-SERVICE][address][API][ERROR][RESPONSE][DATA]", { "landing": 'error' });
+  });
+
+});
+
+describe('isTokenExpired', () => {
+  const decoded = {
+    exp: 1487076708,
+    iat: 1485137384,
+    iss: "acme.com",
+    sub: "29ac0c18-0b4a-42cf-82fc-03d570318a1d",
+    applicationId: "79103734-97ab-4d1a-af37-e006d05d2952",
+    roles: []
+  }
+
+  let mockJWTDecode: jest.SpyInstance;
+  let mockDateNow: jest.SpyInstance;
+
+  beforeEach(() => {
+    mockJWTDecode = jest.spyOn(jwt, 'decode');
+    mockJWTDecode.mockReturnValue(decoded);
+
+    mockDateNow = jest.spyOn(Date, 'now').mockImplementation(() => 1485140984000);  
+  })
+
+  afterEach(() => {
+    mockJWTDecode.mockRestore();
+    mockDateNow.mockRestore();
+  })
+
+  it('will return false', () => {
+    expect(BoomiService.isTokenExpired()).toBe(false);
+  });
+
+  it('will return true', () => {
+    mockDateNow = jest.spyOn(Date, 'now').mockImplementation(() => 1743795574000);  
+    expect(BoomiService.isTokenExpired()).toBe(true);
   });
 
 });
