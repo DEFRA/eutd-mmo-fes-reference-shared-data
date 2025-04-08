@@ -1,9 +1,10 @@
 import { DocumentStatuses } from "../types";
 
-export const getCertificateByDocumentNumberWithNumberOfFailedAttemptsQuery = (documentNumber: string): any[] => {
+export const getCertificateByDocumentNumberWithNumberOfFailedAttemptsQuery = (documentNumber: string, discriminator: string): any[] => {
   return [
     {
       $match: {
+        __t: discriminator,
         documentNumber: documentNumber,
         status: { $in: [DocumentStatuses.Draft, DocumentStatuses.Pending, DocumentStatuses.Complete, DocumentStatuses.Void] }
       }

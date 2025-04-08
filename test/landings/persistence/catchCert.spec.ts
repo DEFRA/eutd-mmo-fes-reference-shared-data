@@ -6,6 +6,7 @@ describe('when querying the exportCertificates collection for catch certs with f
     const expected = [
       {
         $match: {
+          __t: 'catchCert',
           documentNumber: 'CC1',
           status: {
             $in: [
@@ -72,6 +73,6 @@ describe('when querying the exportCertificates collection for catch certs with f
       }
     ];
 
-    expect(getCertificateByDocumentNumberWithNumberOfFailedAttemptsQuery('CC1')).toStrictEqual(expected);
+    expect(getCertificateByDocumentNumberWithNumberOfFailedAttemptsQuery('CC1', 'catchCert')).toStrictEqual(expected);
   })
 });
