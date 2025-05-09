@@ -1,6 +1,6 @@
 {
   "name": "mmo-shared-reference-data",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "description": "Shared repo which holds common code of reference data reader and batch data repo",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
@@ -19,7 +19,6 @@
     "@types/bunyan": "^1.8.11",
     "@types/csvtojson": "2.0.0",
     "@types/jest": "^27.0.0",
-    "@types/jsonwebtoken": "^9.0.9",
     "@typescript-eslint/eslint-plugin": "6.18.1",
     "@typescript-eslint/parser": "6.18.1",
     "babel-jest": "29.7.0",
@@ -44,7 +43,6 @@
     "cross-env": "7.0.3",
     "csvtojson": "2.0.10",
     "dotenv": "16.4.5",
-    "jsonwebtoken": "^9.0.2",
     "lodash": "^4.17.21",
     "moment": "^2.30.1",
     "uuid": "^9.0.1"

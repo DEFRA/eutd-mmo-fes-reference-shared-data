@@ -1,5 +1,4 @@
 import axios, { AxiosResponse } from "axios";
-import jwt from 'jsonwebtoken'
 import querystring from 'querystring';
 import { getConfig } from '../config';
 import { CertificateAddress } from "../landings/types/defraValidation";
@@ -61,9 +60,6 @@ type resourceType = 'landing' | 'catchActivity' | 'salesNotes' | 'eLogs' | 'addr
 
 export class BoomiService {
 
-  static accessToken: string | undefined;
-  static tokenType: string | undefined;
-
   static callingURL(params: any, resourceType: resourceType) {
     return {
       landing: `/api/ecc/v1.0/LandingDeclarations?rssNumber=${params.rssNumber}&landingDate=${params.landingDate}`,
@@ -74,12 +70,11 @@ export class BoomiService {
     }[resourceType]
   }
 
-  static isTokenExpired() {
-    const decoded = jwt.decode(BoomiService.accessToken, { json: true });
-    return decoded.exp < Date.now() / 1000;
-  }
+  static async sendRequest(resourceType: resourceType, headers: any, url: string, params: any) {
+    const config = getConfig();
 
-  static async getAccessToken(resourceType: resourceType, config: any, agent: any): Promise<void> {
+    logger.info(`[BOOMI-SERVICE][${resourceType}][REQUESTING-OAUTH-TOKEN]`);
+
     const tokenRequest: IOAuthRequest = {
       client_id: config.boomiApiOauthClientId,
       client_secret: config.boomiApiOauthClientSecret,
@@ -87,11 +82,13 @@ export class BoomiService {
       grant_type: 'client_credentials'
     };
 
-    logger.info(`[BOOMI-SERVICE][${resourceType}][REQUESTING-OAUTH-TOKEN]`);
-
     const tokenUrl = config.boomiApiOauthTokenUrl;
+    const agent = new https.Agent({
+      secureOptions: SSL_OP_LEGACY_SERVER_CONNECT
+    });
+    
     const data = querystring.stringify(tokenRequest);
-    const response: AxiosResponse<IOAuthResponse> = await axios.post<IOAuthResponse>(
+    const tokenResponse: AxiosResponse<IOAuthResponse> = await axios.post<IOAuthResponse>(
       tokenUrl,
       data,
       {
@@ -105,21 +102,7 @@ export class BoomiService {
       throw new Error(e);
     });
 
-    BoomiService.accessToken = response.data.access_token;
-    BoomiService.tokenType = response.data.token_type;
-  }
-
-  static async sendRequest(resourceType: resourceType, headers: any, url: string, params: any) {
     try {
-      const config = getConfig();
-      const agent = new https.Agent({
-        secureOptions: SSL_OP_LEGACY_SERVER_CONNECT
-      });
-
-      if (!BoomiService.accessToken || BoomiService.isTokenExpired()) {
-        await BoomiService.getAccessToken(resourceType, config, agent)
-      } 
-      
       logger.info(`[BOOMI-SERVICE][${resourceType}][API][BASEURL] ${url}`);
 
       const callingUrl = `${url}${BoomiService.callingURL(params, resourceType)}`;
@@ -130,14 +113,14 @@ export class BoomiService {
         callingUrl,
         {
           headers: {
-            Authorization: `${BoomiService.tokenType} ${BoomiService.accessToken}`,
+            Authorization: `${tokenResponse.data.token_type} ${tokenResponse.data.access_token}`,
             ...headers
           },
           httpsAgent: agent
         }
       );
 
-      logger.info(`[BOOMI-SERVICE][${resourceType}][RESPONSE-DATA][${JSON.stringify(response.data)}]`);
+      logger.info(`[BOOMI-SERVICE][${resourceType}][RESPONSE-DATA]${JSON.stringify(response.data)}`);
 
       if (!response.data) {
         logger.info(`[BOOMI-SERVICE][${resourceType}][RESPONSE-DATA][NO-DATA]`);
@@ -149,7 +132,7 @@ export class BoomiService {
 
     } catch (e) {
 
-      logger.error(`[BOOMI-SERVICE][${resourceType}][API][ERROR][${e}]`);
+      logger.error(`[BOOMI-SERVICE][${resourceType}][API][ERROR] ${e}`);
 
       if (!e.response && typeof e.response === "undefined") {
         throw new Error(e)
