@@ -1,7 +1,8 @@
 import moment from 'moment';
 import { type Catch, type Product, LandingStatus, DocumentStatuses } from '../types/document';
 import { ICcQueryResult } from "../types/query";
-import { isElog, isWithinDeminimus } from '../query';
+import { landingExists } from '../transformations/dynamicsValidation';
+import { LandingStatusType } from '../types';
 
 export function getLandingsFromCatchCertificate(catchCertificate, reportingNewLandings = false) {
   return [].concat(...catchCertificate.exportData.products.map(product =>
@@ -70,7 +71,7 @@ function findStatus(validation: ICcQueryResult): LandingStatus {
     return LandingStatus.Pending;
   }
 
-  if (isElog(isWithinDeminimus)(validation)) {
+  if (landingExists(validation) === LandingStatusType.PendingLandingData_ElogSpecies) {
     return LandingStatus.Elog;
   }
 

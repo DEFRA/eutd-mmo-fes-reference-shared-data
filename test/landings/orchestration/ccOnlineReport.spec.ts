@@ -465,6 +465,73 @@ describe('When updating a landing within an online Catch Certificate', () => {
 
   });
 
+  it('will place a _status of complete for eLogs failures within thier deminimus where species has been found', () => {
+
+    const validation: ICcQueryResult = {
+      documentNumber: "CC1",
+      documentType: "catchCertificate",
+      createdAt: "2020-09-25T11:43:51.869Z",
+      status: "COMPLETE",
+      extended: {
+        exporterName: "Private",
+        exporterCompanyName: "Private",
+        exporterPostCode: "AB1 2XX",
+        vessel: "WIRON 5",
+        landingId: "CC1-1",
+        pln: "H1100",
+        fao: "FAO27",
+        flag: "GBR",
+        cfr: "GBRC1121091",
+        presentation: "WHL",
+        presentationName: "Whole",
+        species: "Atlantic cod (COD)",
+        state: "FRE",
+        stateName: "Fresh",
+        commodityCode: "03025110",
+        transportationVehicle: "directLanding"
+      },
+      rssNumber: "C20514",
+      da: "England",
+      dateLanded: "2020-08-30",
+      species: "COD",
+      weightFactor: 1,
+      weightOnCert: 50,
+      rawWeightOnCert: 50,
+      weightOnAllCerts: 50,
+      weightOnAllCertsBefore: 0,
+      weightOnAllCertsAfter: 500,
+      isExceeding14DayLimit: false,
+      isLandingExists: true,
+      source: "ELOG",
+      weightOnLandingAllSpecies: 1000,
+      numberOfLandingsOnDay: 1,
+      durationBetweenCertCreationAndFirstLandingRetrieved: "-PT0.011S",
+      durationBetweenCertCreationAndLastLandingRetrieved: "-PT0.011S",
+      isSpeciesExists: true,
+      weightOnLanding: 1000,
+      landingTotalBreakdown: [
+        {
+          presentation: "WHL",
+          state: "FRE",
+          source: "ELOG",
+          isEstimate: false,
+          factor: 1,
+          weight: 1000,
+          liveWeight: 1000
+        }
+      ],
+      isOverusedThisCert: false,
+      isOverusedAllCerts: false,
+      overUsedInfo: [],
+      durationSinceCertCreation: "PT0.009S"
+    }
+
+    const result = mapLandingWithLandingStatus(product, validation, () => {return 1});
+
+    expect(result.caughtBy?.[0]._status).toEqual(LandingStatus.Complete);
+
+  });
+
   it('will place a _status of landing data overuse for a landing where an overuse has occured', () => {
 
     const validation: ICcQueryResult = {

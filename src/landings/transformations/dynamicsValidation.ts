@@ -52,7 +52,7 @@ export const isLandingDataLate: (firstDateTimeRetrieved: string, landingDataExpe
   return firstDateTimeRetrieved !== undefined && landingDataExpectedDate !== undefined && landingDataReceivedTime.isValid() && landingDataExpected.isValid() ? landingDataReceivedTime.isAfter(landingDataExpected, 'day') : undefined;
 }
 
-function landingExists(ccQuery: ICcQueryResult, output: LandingStatusType) {
+export function landingExists(ccQuery: ICcQueryResult, output?: LandingStatusType) {
   if (ccQuery.isSpeciesExists) {
     const isOverusedAllCerts = ccQuery.isOverusedAllCerts && ccQuery.overUsedInfo.filter((documentNumber: string) => documentNumber !== ccQuery.documentNumber).length > 0;
     if (ccQuery.isOverusedThisCert && isOverusedAllCerts) {
@@ -96,7 +96,7 @@ export function toLandingStatus(ccQuery: ICcQueryResult, isHighRisk: boolean): L
   let output: LandingStatusType = landingDataExpectedAtSubmission ? LandingStatusType.PendingLandingData_DataExpected : LandingStatusType.PendingLandingData_DataNotYetExpected;
 
   if (ccQuery.isLandingExists) {
-    output = landingExists(ccQuery, output)
+    output = landingExists(ccQuery, output);
   } else {
     output = landingDoesNotExists(ccQuery, isHighRisk, landingDataExpectedAtSubmission, output);
   }
