@@ -39,10 +39,19 @@ export function toExporter(catchCertificate: IDocument): CertificateExporterAndC
 }
 
 export function toExportedTo(certificate: IDocument): ICountry {
+
+  if (certificate.exportData?.transportation) {
+    return {
+      officialCountryName: certificate.exportData.transportation.exportedTo?.officialCountryName,
+      isoCodeAlpha2: certificate.exportData.transportation.exportedTo?.isoCodeAlpha2,
+      isoCodeAlpha3: certificate.exportData.transportation.exportedTo?.isoCodeAlpha3
+    }
+  }
+
   return {
-    officialCountryName: certificate.exportData?.transportation?.exportedTo?.officialCountryName,
-    isoCodeAlpha2: certificate.exportData?.transportation?.exportedTo?.isoCodeAlpha2,
-    isoCodeAlpha3: certificate.exportData?.transportation?.exportedTo?.isoCodeAlpha3
+      officialCountryName: certificate.exportData?.exportedTo?.officialCountryName,
+      isoCodeAlpha2: certificate.exportData?.exportedTo?.isoCodeAlpha2,
+      isoCodeAlpha3: certificate.exportData?.exportedTo?.isoCodeAlpha3
   }
 }
 

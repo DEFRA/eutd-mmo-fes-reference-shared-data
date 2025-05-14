@@ -522,7 +522,7 @@ describe('When mapping from an ICcQueryResult to an Landing Status', () => {
     });
 
     it('will flag as `Weight Failure` if over use occurs on the same certificate - Weight and Overuse only applies if the landing has been used on more than one catch certificates', () => {
-      const input: ICcQueryResult =     {
+      const input: ICcQueryResult = {
         documentNumber: "GBR-2024-CC-FA0CB09E3",
         documentType: "catchCertificate",
         createdAt: "2024-07-17T10:27:23.172Z",
@@ -638,7 +638,7 @@ describe('When mapping from an ICcQueryResult to an Landing Status', () => {
         isOverusedThisCert: true,
         isOverusedAllCerts: true,
         isExceeding14DayLimit: false,
-        overUsedInfo: ['CC1','CC2'],
+        overUsedInfo: ['CC1', 'CC2'],
         durationSinceCertCreation: moment.duration(
           queryTime
             .diff(moment.utc('2019-07-13T08:26:06.939Z'))).toISOString(),
@@ -1015,7 +1015,7 @@ describe('When mapping from an ICcQueryResult to an Landing Status', () => {
           isOverusedThisCert: true,
           isOverusedAllCerts: true,
           isExceeding14DayLimit: false,
-          overUsedInfo: ['CC1','CC2'],
+          overUsedInfo: ['CC1', 'CC2'],
           durationSinceCertCreation: moment.duration(
             queryTime
               .diff(moment.utc('2024-02-04T08:26:06.939Z'))).toISOString(),
@@ -1244,7 +1244,7 @@ describe('When mapping from an ICcQueryResult to an Landing Status', () => {
         isOverusedThisCert: false,
         isOverusedAllCerts: true,
         isExceeding14DayLimit: false,
-        overUsedInfo: ['CC1','CC2'],
+        overUsedInfo: ['CC1', 'CC2'],
         durationSinceCertCreation: moment.duration(
           queryTime
             .diff(moment.utc('2019-07-13T08:26:06.939Z'))).toISOString(),
@@ -1388,7 +1388,7 @@ describe('When mapping from an ICcQueryResult to an Landing Status', () => {
         isOverusedThisCert: true,
         isOverusedAllCerts: true,
         isExceeding14DayLimit: false,
-        overUsedInfo: ['CC1','CC2'],
+        overUsedInfo: ['CC1', 'CC2'],
         durationSinceCertCreation: moment.duration(queryTime
           .diff(moment.utc('2019-07-13T08:26:06.939Z'))).toISOString(),
         durationBetweenCertCreationAndFirstLandingRetrieved: moment.duration(
@@ -2961,6 +2961,45 @@ describe('When mapping toExportedTo', () => {
     };
 
     expect(SUT.toExportedTo(exampleCc)).toStrictEqual(expeceted);
+  });
+
+  it('will return an exportTo from transportation', () => {
+    const expeceted: ICountry = {
+      isoCodeAlpha2: "NG",
+      isoCodeAlpha3: "NGA",
+      officialCountryName: "Nigeria",
+    };
+
+    expect(SUT.toExportedTo({
+      ...exampleCc,
+      exportData: {
+        ...exampleCc.exportData,
+        transportation: undefined,
+        transportations: [{ id: 0, vehicle: 'directLanding' }],
+        exportedFrom: "United Kingdom",
+        exportedTo: {
+          officialCountryName: "Nigeria",
+          isoCodeAlpha2: "NG",
+          isoCodeAlpha3: "NGA",
+          isoNumericCode: "566"
+        },
+      }
+    })).toStrictEqual(expeceted);
+  });
+
+  it('will not return an exportTo from transportation', () => {
+
+    expect(SUT.toExportedTo({
+      ...exampleCc,
+      exportData: {
+        ...exampleCc.exportData,
+        transportation: {},
+      }
+    })).toStrictEqual({
+      isoCodeAlpha2: undefined,
+      isoCodeAlpha3: undefined,
+      officialCountryName: undefined,
+    });
   });
 
   it('will return with no transportation', () => {

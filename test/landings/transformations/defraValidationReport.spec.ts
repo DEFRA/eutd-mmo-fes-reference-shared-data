@@ -2,7 +2,6 @@ import moment from 'moment';
 import {
   CertificateAudit,
   CertificateTransport,
-  CertificateLanding,
   IDefraValidationCatchCertificate
 } from '../../../src/landings/types/defraValidation';
 import { ICcQueryResult } from '../../../src/landings/types/query';
@@ -260,9 +259,9 @@ describe('Mapping data for DEFRA Central Reporting HUB', () => {
         ],
         transportation: {
           modeofTransport: 'truck',
-          hasRoadTransportDocument: true,
+          exportLocation: "Hull",
+          hasRoadTransportDocument: undefined,
           exportDate: undefined,
-          exportLocation: undefined,
           nationality: undefined,
           registration: undefined
         },
@@ -689,9 +688,9 @@ describe('Mapping data for DEFRA Central Reporting HUB', () => {
         ],
         transportation: {
           modeofTransport: 'truck',
-          hasRoadTransportDocument: true,
+          hasRoadTransportDocument: undefined,
           exportDate: undefined,
-          exportLocation: undefined,
+          exportLocation: 'Hull',
           nationality: undefined,
           registration: undefined
         },
@@ -2120,17 +2119,18 @@ const exampleCc: IDocument = {
     "conservation": {
       "conservationReference": "UK Fisheries Policy"
     },
-    "transportation": {
+    "exportedFrom": "United Kingdom",
+    "exportedTo": {
+      "officialCountryName": "Nigeria",
+      "isoCodeAlpha2": "NG",
+      "isoCodeAlpha3": "NGA",
+      "isoNumericCode": "566"
+    },
+    "transportations": [{
+      "id": "0",
       "vehicle": "truck",
-      "exportedFrom": "United Kingdom",
-      "exportedTo": {
-        "officialCountryName": "Nigeria",
-        "isoCodeAlpha2": "NG",
-        "isoCodeAlpha3": "NGA",
-        "isoNumericCode": "566"
-      },
-      "cmr": true
-    }
+      "departurePlace": "Hull"
+    }]
   },
   "createdByEmail": "foo@foo.com",
   "documentUri": "_44fd226f-598f-4615-930f-716b2762fea4.pdf",

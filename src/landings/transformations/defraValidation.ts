@@ -102,6 +102,12 @@ export function toCcDefraReport(documentNumber: string, correlationId: string, s
             result.exportedTo = exportData.transportation.exportedTo;
          }
 
+         if (Array.isArray(exportData.transportations) && exportData.transportations.length > 0) {
+            result.transportation = toTransportation(exportData.transportations.find((t) => t.departurePlace));
+            result.exportedFrom = exportData.exportedFrom;
+            result.exportedTo = exportData.exportedTo;
+         }
+
          if (exportData.products && exportData.products.length > 0) {
             result.landings = exportData.products.flatMap((product: Product) =>
                toDefraCcLanding(product, exportData.transportation, catchCert.createdAt?.toISOString(), vesselsIdx));
