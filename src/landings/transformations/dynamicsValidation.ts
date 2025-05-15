@@ -40,11 +40,11 @@ export function toExporter(catchCertificate: IDocument): CertificateExporterAndC
 
 export function toExportedTo(certificate: IDocument): ICountry {
 
-  if (certificate.exportData?.transportation) {
+  if (certificate.exportData?.transportation?.exportedTo) {
     return {
-      officialCountryName: certificate.exportData.transportation.exportedTo?.officialCountryName,
-      isoCodeAlpha2: certificate.exportData.transportation.exportedTo?.isoCodeAlpha2,
-      isoCodeAlpha3: certificate.exportData.transportation.exportedTo?.isoCodeAlpha3
+      officialCountryName: certificate.exportData.transportation.exportedTo.officialCountryName,
+      isoCodeAlpha2: certificate.exportData.transportation.exportedTo.isoCodeAlpha2,
+      isoCodeAlpha3: certificate.exportData.transportation.exportedTo.isoCodeAlpha3
     }
   }
 
@@ -75,7 +75,7 @@ export function landingExists(ccQuery: ICcQueryResult, output?: LandingStatusTyp
     }
   } else {
     output = LandingStatusType.ValidationFailure_Species;
-    if (isElog(isWithinDeminimus)(ccQuery) && !ccQuery.isExceeding14DayLimit ) {
+    if (isElog(isWithinDeminimus)(ccQuery) && !ccQuery.isExceeding14DayLimit) {
       output = LandingStatusType.PendingLandingData_ElogSpecies;
     }
   }
@@ -83,7 +83,7 @@ export function landingExists(ccQuery: ICcQueryResult, output?: LandingStatusTyp
   return output;
 }
 
-function landingDoesNotExists(ccQuery: ICcQueryResult, isHighRisk: boolean, landingDataExpectedAtSubmission: boolean,  output: LandingStatusType) {
+function landingDoesNotExists(ccQuery: ICcQueryResult, isHighRisk: boolean, landingDataExpectedAtSubmission: boolean, output: LandingStatusType) {
   const isNoLandingData = (ccQuery: ICcQueryResult) =>
     landingDataExpectedAtSubmission && !isInRetrospectivePeriod(moment.utc(), ccQuery) ||
     ccQuery.extended.vesselOverriddenByAdmin && isHighRisk ||
