@@ -260,11 +260,63 @@ describe('Mapping data for DEFRA Central Reporting HUB', () => {
         transportation: {
           modeofTransport: 'truck',
           exportLocation: "Hull",
-          hasRoadTransportDocument: undefined,
+          hasRoadTransportDocument: true,
           exportDate: undefined,
           nationality: undefined,
           registration: undefined
         },
+        transportations: [{
+          id: 0,
+          freightBillNumber: '0',
+          modeofTransport: 'truck',
+          exportLocation: "Hull",
+          nationality: undefined,
+          registration: undefined,
+          transportDocuments: [{
+            name: "Invoice",
+            reference: "INV001"
+          }]
+        }, {
+          id: 0,
+          freightBillNumber: '0',
+          modeofTransport: 'plane',
+          exportLocation: "Hull",
+          flightNumber: undefined,
+          containerId: undefined,
+          transportDocuments: [{
+            name: "Invoice",
+            reference: "INV001"
+          }]
+        }, {
+          id: 0,
+          freightBillNumber: '0',
+          modeofTransport: 'train',
+          exportLocation: "Hull",
+          billNumber: undefined,
+          transportDocuments: [{
+            name: "Invoice",
+            reference: "INV001"
+          }]
+        }, {
+          id: 0,
+          freightBillNumber: '0',
+          modeofTransport: 'vessel',
+          exportLocation: "Hull",
+          name: undefined,
+          flag: undefined,
+          transportDocuments: [{
+            name: "Invoice",
+            reference: "INV001"
+          }]
+        }, {
+          id: 0,
+          freightBillNumber: '0',
+          modeofTransport: 'unknown',
+          exportLocation: "Hull",
+          nationality: undefined,
+          registration: undefined,
+          transportDocuments: []
+        }],
         _correlationId: 'some-uuid-correlation-id',
         requestedByAdmin: false
       });
@@ -688,12 +740,64 @@ describe('Mapping data for DEFRA Central Reporting HUB', () => {
         ],
         transportation: {
           modeofTransport: 'truck',
-          hasRoadTransportDocument: undefined,
+          hasRoadTransportDocument: true,
           exportDate: undefined,
           exportLocation: 'Hull',
           nationality: undefined,
           registration: undefined
         },
+        transportations: [{
+          id: 0,
+          freightBillNumber: '0',
+          modeofTransport: 'truck',
+          exportLocation: "Hull",
+          nationality: undefined,
+          registration: undefined,
+          transportDocuments: [{
+            name: "Invoice",
+            reference: "INV001"
+          }]
+        }, {
+          id: 0,
+          freightBillNumber: '0',
+          modeofTransport: 'plane',
+          exportLocation: "Hull",
+          nationality: undefined,
+          registration: undefined,
+          transportDocuments: [{
+            name: "Invoice",
+            reference: "INV001"
+          }]
+        }, {
+          id: 0,
+          freightBillNumber: '0',
+          modeofTransport: 'train',
+          exportLocation: "Hull",
+          billNumber: undefined,
+          transportDocuments: [{
+            name: "Invoice",
+            reference: "INV001"
+          }]
+        }, {
+          id: 0,
+          freightBillNumber: '0',
+          modeofTransport: 'vessel',
+          exportLocation: "Hull",
+          name: undefined,
+          flag: undefined,
+          transportDocuments: [{
+            name: "Invoice",
+            reference: "INV001"
+          }]
+        }, {
+          id: 0,
+          freightBillNumber: '0',
+          modeofTransport: 'unknown',
+          exportLocation: "Hull",
+          nationality: undefined,
+          registration: undefined,
+          transportDocuments: []
+        }],
         _correlationId: 'some-uuid-correlation-id',
         requestedByAdmin: false
       });
@@ -2126,11 +2230,84 @@ const exampleCc: IDocument = {
       "isoCodeAlpha3": "NGA",
       "isoNumericCode": "566"
     },
+    "transportation": {
+      "vehicle": 'truck',
+      "departurePlace": "Hull",
+      "cmr": true
+    },
     "transportations": [{
-      "id": "0",
+      "id": 0,
+      "freightBillNumber": '0',
       "vehicle": "truck",
-      "departurePlace": "Hull"
-    }]
+      "departurePlace": "Hull",
+      "exportedTo": {
+        "officialCountryName": "Nigeria",
+        "isoCodeAlpha2": "NG",
+        "isoCodeAlpha3": "NGA",
+        "isoNumericCode": "566"
+      },
+      "documents": [{
+        "name": "Invoice",
+        "reference": "INV001"
+      }]
+    }, {
+      "id": 0,
+      "freightBillNumber": '0',
+      "vehicle": "plane",
+      "departurePlace": "Hull",
+      "exportedTo": {
+        "officialCountryName": "Nigeria",
+        "isoCodeAlpha2": "NG",
+        "isoCodeAlpha3": "NGA",
+        "isoNumericCode": "566"
+      },
+      "documents": [{
+        "name": "Invoice",
+        "reference": "INV001"
+      }]
+    }, {
+      "id": 0,
+      "freightBillNumber": '0',
+      "vehicle": "train",
+      "departurePlace": "Hull",
+      "exportedTo": {
+        "officialCountryName": "Nigeria",
+        "isoCodeAlpha2": "NG",
+        "isoCodeAlpha3": "NGA",
+        "isoNumericCode": "566"
+      },
+      "documents": [{
+        "name": "Invoice",
+        "reference": "INV001"
+      }]
+    }, {
+      "id": 0,
+      "freightBillNumber": '0',
+      "vehicle": "containerVessel",
+      "departurePlace": "Hull",
+      "exportedTo": {
+        "officialCountryName": "Nigeria",
+        "isoCodeAlpha2": "NG",
+        "isoCodeAlpha3": "NGA",
+        "isoNumericCode": "566"
+      },
+      "documents": [{
+        "name": "Invoice",
+        "reference": "INV001"
+      }]
+    }, {
+      "id": 0,
+      "freightBillNumber": '0',
+      "vehicle": "unknown",
+      "departurePlace": "Hull",
+      "exportedTo": {
+        "officialCountryName": "Nigeria",
+        "isoCodeAlpha2": "NG",
+        "isoCodeAlpha3": "NGA",
+        "isoNumericCode": "566"
+      },
+      "documents": []
+    }, undefined]
   },
   "createdByEmail": "foo@foo.com",
   "documentUri": "_44fd226f-598f-4615-930f-716b2762fea4.pdf",

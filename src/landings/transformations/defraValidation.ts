@@ -5,7 +5,8 @@ import {
    CertificateTransport,
    IDefraValidationCatchCertificate,
    CertificateExporterAndCompany,
-   CertificateLanding
+   CertificateLanding,
+   CatchCertificateTransport
 } from '../types/defraValidation';
 import {
    ICcQueryResult
@@ -103,7 +104,7 @@ export function toCcDefraReport(documentNumber: string, correlationId: string, s
          }
 
          if (Array.isArray(exportData.transportations) && exportData.transportations.length > 0) {
-            result.transportation = toTransportation(exportData.transportations.find((t) => t.departurePlace));
+            result.transportations = exportData.transportations.map((transportation) => toTransportations(transportation));
             result.exportedFrom = exportData.exportedFrom;
             result.exportedTo = exportData.exportedTo;
          }
@@ -218,6 +219,65 @@ export function toTransportation(transportation): CertificateTransport {
             modeofTransport: transportation.vehicle,
             exportLocation: transportation.departurePlace,
             exportDate: transportation.exportDate
+         }
+   }
+}
+export function toTransportations(transportation): CatchCertificateTransport {
+
+   if (transportation === undefined)
+      return undefined;
+
+   const transportDocuments = Array.isArray(transportation.documents) && transportation.documents.length > 0 ? transportation.documents : [];
+   switch (transportation.vehicle) {
+      case TRANSPORT_VEHICLE_TRUCK:
+         return {
+            id: transportation.id,
+            modeofTransport: transportation.vehicle,
+            freightBillNumber: transportation.freightBillNumber,
+            nationality: transportation.nationalityOfVehicle,
+            registration: transportation.registrationNumber,
+            exportLocation: transportation.departurePlace,
+            transportDocuments,
+         }
+      case TRANSPORT_VEHICLE_TRAIN:
+         return {
+            id: transportation.id,
+            modeofTransport: transportation.vehicle,
+            freightBillNumber: transportation.freightBillNumber,
+            billNumber: transportation.railwayBillNumber,
+            exportLocation: transportation.departurePlace,
+            transportDocuments,
+         }
+      case TRANSPORT_VEHICLE_PLANE:
+         return {
+            id: transportation.id,
+            modeofTransport: transportation.vehicle,
+            freightBillNumber: transportation.freightBillNumber,
+            flightNumber: transportation.flightNumber,
+            containerId: transportation.containerNumber,
+            exportLocation: transportation.departurePlace,
+            transportDocuments,
+         }
+      case TRANSPORT_VEHICLE_CONTAINER_VESSEL:
+         return {
+            id: transportation.id,
+            modeofTransport: TRANSPORT_VEHICLE_VESSEL,
+            freightBillNumber: transportation.freightBillNumber,
+            name: transportation.vesselName,
+            flag: transportation.flagState,
+            containerId: transportation.containerNumber,
+            exportLocation: transportation.departurePlace,
+            transportDocuments,
+         }
+      default:
+         return {
+            id: transportation.id,
+            modeofTransport: transportation.vehicle,
+            freightBillNumber: transportation.freightBillNumber,
+            exportLocation: transportation.departurePlace,
+            nationality: transportation.nationalityOfVehicle,
+            registration: transportation.registrationNumber,
+            transportDocuments,
          }
    }
 }

@@ -111,6 +111,41 @@ type FishingVessel = ModeOfTransport;
 
 export type CertificateTransport = Truck | Train | Plane | Vessel | FishingVessel;
 
+export interface CatchCertificateTransportDocument {
+    name: string,
+    reference: string
+}
+
+interface CatchCertificateModeOfTransport {
+    id: string;
+    modeofTransport: string;
+    exportLocation: string;
+    freightBillNumber: string;
+    transportDocuments: CatchCertificateTransportDocument[];
+}
+
+export interface CatchCertificateTruck extends CatchCertificateModeOfTransport {
+    nationality: string;
+    registration: string;
+}
+
+export interface CatchCertificateTrain extends CatchCertificateModeOfTransport {
+    billNumber: string;
+}
+
+export interface CatchCertificatePlane extends CatchCertificateModeOfTransport {
+    flightNumber: string;
+    containerId: string;
+}
+
+export interface CatchCertificateVessel extends CatchCertificateModeOfTransport {
+    name: string;
+    flag: string;
+    containerId: string;
+} 
+
+export type CatchCertificateTransport = CatchCertificateTrain | CatchCertificatePlane | CatchCertificateVessel | CatchCertificateTruck;
+
 export interface CertificateFish {
     name: string;
     code: string;
@@ -196,6 +231,7 @@ export interface IDefraValidationCatchCertificate {
     exportedFrom?:          string;
     exportedTo?:            ICountry;
     transportation?:        CertificateTransport;
+    transportations?:       CatchCertificateTransport[];
     failedSubmissions?:     number;
     _correlationId:         string;
     requestedByAdmin:       boolean;
