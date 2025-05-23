@@ -2,7 +2,9 @@ export {
   getIsLegallyDue,
   toCcDefraReport,
   toDefraCcLanding,
-  toDefraCcLandingStatus
+  toDefraCcLandingStatus,
+  toTransportation,
+  toTransportations,
 } from './defraValidation';
 export {
   aggregateOnLandingDate,

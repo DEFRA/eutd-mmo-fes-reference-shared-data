@@ -1,7 +1,7 @@
 export * from './appConfig';
 export { AuditEventTypes, InvestigationStatus } from "./auditEvent";
 export { ILanding, LandingSources, ILandingQuery, ILandingAggregated, ILandingItem, ILandingAggregatedItemBreakdown } from './landing';
-export { IDefraValidationReport, IDefraValidationCatchCertificate, CertificateExporterAndCompany, CertificateLanding } from './defraValidation';
+export { IDefraValidationReport, IDefraValidationCatchCertificate, CertificateExporterAndCompany, CertificateLanding, CatchCertificateTransport, CertificateTransport } from './defraValidation';
 export { ICcQueryResult, ICcBatchValidationReport } from './query';
 export { IGetCatchCerts, LandingStatus, DocumentStatuses, IDocument, Product } from './document';
 export { IDynamicsLanding, LevelOfRiskType, LandingStatusType, DefraCcLandingStatusType, LandingOutcomeType, LandingRetrospectiveOutcomeType } from "./dynamicsCcCase";
