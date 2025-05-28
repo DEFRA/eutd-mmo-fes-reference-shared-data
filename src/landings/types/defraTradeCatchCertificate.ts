@@ -1,5 +1,5 @@
 import { ICountry } from "./appConfig/countries";
-import { CertificateAudit, CertificateExporterAndCompany, CertificateTransport } from "./defraValidation";
+import { CatchCertificateTransport, CertificateAudit, CertificateExporterAndCompany, CertificateTransport } from "./defraValidation";
 import { CaseOneType, CaseTwoType, DefraCcLandingStatusType, IBaseLanding } from "./dynamicsCcCase";
 
 export enum CatchArea {
@@ -60,6 +60,7 @@ export interface IDefraTradeCatchCertificate {
   speciesOverriddenByAdmin?: boolean;
   audits?: CertificateAudit[];
   failureIrrespectiveOfRisk?: boolean;
-  transportation: CertificateTransport;
+  transportation?: CertificateTransport;
+  transportations?: CatchCertificateTransport[];
   multiVesselSchedule: boolean;
 }
