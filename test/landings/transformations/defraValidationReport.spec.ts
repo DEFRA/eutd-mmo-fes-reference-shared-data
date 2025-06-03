@@ -2246,7 +2246,7 @@ const exampleCc: IDocument = {
         "isoCodeAlpha3": "NGA",
         "isoNumericCode": "566"
       },
-      "documents": [{
+      "transportDocuments": [{
         "name": "Invoice",
         "reference": "INV001"
       }]
@@ -2261,7 +2261,7 @@ const exampleCc: IDocument = {
         "isoCodeAlpha3": "NGA",
         "isoNumericCode": "566"
       },
-      "documents": [{
+      "transportDocuments": [{
         "name": "Invoice",
         "reference": "INV001"
       }]
@@ -2276,7 +2276,7 @@ const exampleCc: IDocument = {
         "isoCodeAlpha3": "NGA",
         "isoNumericCode": "566"
       },
-      "documents": [{
+      "transportDocuments": [{
         "name": "Invoice",
         "reference": "INV001"
       }]
@@ -2291,7 +2291,7 @@ const exampleCc: IDocument = {
         "isoCodeAlpha3": "NGA",
         "isoNumericCode": "566"
       },
-      "documents": [{
+      "transportDocuments": [{
         "name": "Invoice",
         "reference": "INV001"
       }]
@@ -2306,7 +2306,7 @@ const exampleCc: IDocument = {
         "isoCodeAlpha3": "NGA",
         "isoNumericCode": "566"
       },
-      "documents": []
+      "transportDocuments": []
     }, undefined]
   },
   "createdByEmail": "foo@foo.com",

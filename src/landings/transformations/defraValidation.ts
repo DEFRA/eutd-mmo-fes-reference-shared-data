@@ -6,7 +6,8 @@ import {
    IDefraValidationCatchCertificate,
    CertificateExporterAndCompany,
    CertificateLanding,
-   CatchCertificateTransport
+   CatchCertificateTransport,
+   CatchCertificateTransportDocument
 } from '../types/defraValidation';
 import {
    ICcQueryResult
@@ -227,7 +228,8 @@ export function toTransportations(transportation): CatchCertificateTransport {
    if (transportation === undefined)
       return undefined;
 
-   const transportDocuments = Array.isArray(transportation.documents) && transportation.documents.length > 0 ? transportation.documents : [];
+   const transportDocuments: CatchCertificateTransportDocument[] = Array.isArray(transportation.transportDocuments) && transportation.transportDocuments.length > 0 ? transportation.transportDocuments : [];
+
    switch (transportation.vehicle) {
       case TRANSPORT_VEHICLE_TRUCK:
          return {
