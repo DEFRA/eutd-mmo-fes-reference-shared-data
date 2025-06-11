@@ -10,12 +10,6 @@ trigger:
       - 'develop'
       - 'feature/FI0-*'
 
-parameters:
-  - name: deployFromFeatureBranch
-    displayName: 'Deploy from Feature Branch'
-    type: boolean
-    default: false
-
 resources:
   repositories:
     - repository: MMOPipelineCommon
@@ -25,5 +19,3 @@ resources:
 
 stages:
   - template: /includes/npm-package-build-publish.yaml@MMOPipelineCommon
-    parameters:
-      deployFromFeatureBranch: ${{ parameters.deployFromFeatureBranch }}
