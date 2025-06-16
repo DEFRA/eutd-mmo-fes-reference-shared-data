@@ -33,6 +33,12 @@ export const daLookUp = postCodeDaLookup(postCodeToDa);
 export const getIsLegallyDue = (rawValidatedLanding: ICcQueryResult) =>
    (rawValidatedLanding.extended.vesselOverriddenByAdmin && !rawValidatedLanding.rssNumber) ? false : rawValidatedLanding.extended.isLegallyDue
 
+const getCreatedAt = (catchCert: IDocument) => catchCert.createdAt ? catchCert.createdAt : undefined;
+const shouldAddConservationReference = (exportData: any) => exportData.conservation?.conservationReference;
+const getUserDetails = (exportData: any) => exportData.exporterDetails._dynamicsUser ?? {};
+const shouldAddTransportations = (exportData: any) => Array.isArray(exportData.transportations) && exportData.transportations.length > 0;
+const shouldAddProducts = (exportData: any) => exportData.products?.length > 0;
+
 export function toCcDefraReport(documentNumber: string, correlationId: string, status: string, requestByAdmin: boolean, vesselsIdx?: (pln: string) => any, catchCert?: IDocument): IDefraValidationCatchCertificate {
    const result: IDefraValidationCatchCertificate = {
       documentType: "CatchCertificate",
@@ -42,79 +48,83 @@ export function toCcDefraReport(documentNumber: string, correlationId: string, s
       requestedByAdmin: requestByAdmin
    };
 
-   if (!isEmpty(catchCert)) {
-      result.userReference = catchCert.userReference;
-      result.dateCreated = catchCert.createdAt ? catchCert.createdAt : undefined;
-      result.failedSubmissions = catchCert.numberOfFailedAttempts;
-      result.clonedFrom = catchCert.clonedFrom;
-      result.landingsCloned = catchCert.landingsCloned;
-      result.parentDocumentVoid = catchCert.parentDocumentVoid;
+   if (isEmpty(catchCert)) {
+      return result;
+   }
 
-      if (catchCert.audit.length > 0) {
-         result.audits = catchCert.audit.map(_ => toDefraAudit(_));
+   result.userReference = catchCert.userReference;
+   result.dateCreated = getCreatedAt(catchCert);
+   result.failedSubmissions = catchCert.numberOfFailedAttempts;
+   result.clonedFrom = catchCert.clonedFrom;
+   result.landingsCloned = catchCert.landingsCloned;
+   result.parentDocumentVoid = catchCert.parentDocumentVoid;
+
+   if (catchCert.audit.length > 0) {
+      result.audits = catchCert.audit.map(_ => toDefraAudit(_));
+   }
+
+   if (catchCert.documentUri) {
+      result.documentUri = `${getConfig().externalAppUrl}/qr/export-certificates/${catchCert.documentUri}`;
+   }
+
+   const exportData = catchCert.exportData;
+
+   if (!exportData) {
+      return result;
+   }
+
+   if (exportData.exporterDetails) {
+      const exporterDetails: CertificateExporterAndCompany = {
+         fullName: exportData.exporterDetails.exporterFullName,
+         companyName: exportData.exporterDetails.exporterCompanyName,
+         contactId: exportData.exporterDetails.contactId,
+         accountId: exportData.exporterDetails.accountId,
+         address: {
+            building_number: exportData.exporterDetails.buildingNumber,
+            sub_building_name: exportData.exporterDetails.subBuildingName,
+            building_name: exportData.exporterDetails.buildingName,
+            street_name: exportData.exporterDetails.streetName,
+            county: exportData.exporterDetails.county,
+            country: exportData.exporterDetails.country,
+            line1: exportData.exporterDetails.addressOne,
+            city: exportData.exporterDetails.townCity,
+            postCode: exportData.exporterDetails.postcode
+         },
+         dynamicsAddress: exportData.exporterDetails._dynamicsAddress
+      };
+
+      result.exporterDetails = exporterDetails;
+      result.devolvedAuthority = daLookUp(exportData.exporterDetails.postcode);
+
+      if (shouldAddConservationReference(exportData)) {
+         result.conservationReference = exportData.conservation.conservationReference;
       }
 
-      if (catchCert.documentUri) {
-         result.documentUri = `${getConfig().externalAppUrl}/qr/export-certificates/${catchCert.documentUri}`;
+      const userDetails = getUserDetails(exportData);
+      const { firstName, lastName } = userDetails;
+      result.created = {
+         id: catchCert.createdBy,
+         email: catchCert.createdByEmail,
+         firstName,
+         lastName
       }
+   }
 
-      const exportData = catchCert.exportData;
-      if (exportData) {
+   if (exportData.transportation) {
+      result.transportation = toTransportation(exportData.transportation);
+      result.exportedFrom = exportData.transportation.exportedFrom;
+      result.exportedTo = exportData.transportation.exportedTo;
+   }
 
-         if (exportData.exporterDetails) {
-            const exporterDetails: CertificateExporterAndCompany = {
-               fullName: exportData.exporterDetails.exporterFullName,
-               companyName: exportData.exporterDetails.exporterCompanyName,
-               contactId: exportData.exporterDetails.contactId,
-               accountId: exportData.exporterDetails.accountId,
-               address: {
-                  building_number: exportData.exporterDetails.buildingNumber,
-                  sub_building_name: exportData.exporterDetails.subBuildingName,
-                  building_name: exportData.exporterDetails.buildingName,
-                  street_name: exportData.exporterDetails.streetName,
-                  county: exportData.exporterDetails.county,
-                  country: exportData.exporterDetails.country,
-                  line1: exportData.exporterDetails.addressOne,
-                  city: exportData.exporterDetails.townCity,
-                  postCode: exportData.exporterDetails.postcode
-               },
-               dynamicsAddress: exportData.exporterDetails._dynamicsAddress
-            };
+   if (shouldAddTransportations(exportData)) {
+      result.transportations = exportData.transportations.map((transportation) => toTransportations(transportation));
+      result.exportedFrom = exportData.exportedFrom;
+      result.exportedTo = exportData.exportedTo;
+   }
 
-            result.exporterDetails = exporterDetails;
-            result.devolvedAuthority = daLookUp(exportData.exporterDetails.postcode);
-
-            if (exportData.conservation && exportData.conservation.conservationReference) {
-               result.conservationReference = exportData.conservation.conservationReference;
-            }
-
-            const userDetails = exportData.exporterDetails._dynamicsUser || {};
-            const { firstName, lastName } = userDetails;
-            result.created = {
-               id: catchCert.createdBy,
-               email: catchCert.createdByEmail,
-               firstName,
-               lastName
-            }
-         }
-
-         if (exportData.transportation) {
-            result.transportation = toTransportation(exportData.transportation);
-            result.exportedFrom = exportData.transportation.exportedFrom;
-            result.exportedTo = exportData.transportation.exportedTo;
-         }
-
-         if (Array.isArray(exportData.transportations) && exportData.transportations.length > 0) {
-            result.transportations = exportData.transportations.map((transportation) => toTransportations(transportation));
-            result.exportedFrom = exportData.exportedFrom;
-            result.exportedTo = exportData.exportedTo;
-         }
-
-         if (exportData.products && exportData.products.length > 0) {
-            result.landings = exportData.products.flatMap((product: Product) =>
-               toDefraCcLanding(product, exportData.transportation, catchCert.createdAt?.toISOString(), vesselsIdx));
-         }
-      }
+   if (shouldAddProducts(exportData)) {
+      result.landings = exportData.products.flatMap((product: Product) =>
+         toDefraCcLanding(product, exportData.transportation, catchCert.createdAt?.toISOString(), vesselsIdx));
    }
 
    return result;

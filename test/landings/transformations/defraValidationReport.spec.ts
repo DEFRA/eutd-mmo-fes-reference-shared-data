@@ -322,6 +322,315 @@ describe('Mapping data for DEFRA Central Reporting HUB', () => {
       });
     });
 
+    it('can map a whole CC document without exportData', () => {
+      const localExampleCc = {
+        "createdAt": new Date("2020-06-24T10:39:32.000Z"),
+        "__t": "catchCert",
+        "createdBy": "ABCD-EFGH-IJKL-MNOP-QRST-UVWX-YZ12",
+        "status": "COMPLETE",
+        "documentNumber": "GBR-2020-CC-1BC924FCF",
+        "clonedFrom": "GBR-2023-CC-C3A82642B",
+        "landingsCloned": false,
+        "parentDocumentVoid": false,
+        "audit": [
+          {
+            "eventType": "INVESTIGATED",
+            "triggeredBy": "Chris Waugh",
+            "timestamp": {
+              "$date": "2020-06-24T10:40:18.780Z"
+            },
+            "data": {
+              "investigationStatus": "UNDER_INVESTIGATION"
+            }
+          },
+          {
+            "eventType": "INVESTIGATED",
+            "triggeredBy": "Chris Waugh",
+            "timestamp": {
+              "$date": "2020-06-24T10:40:23.439Z"
+            },
+            "data": {
+              "investigationStatus": "CLOSED_NFA"
+            }
+          }
+        ],
+        "userReference": "MY REF",
+        "createdByEmail": "foo@foo.com",
+        "documentUri": "_44fd226f-598f-4615-930f-716b2762fea4.pdf",
+        "investigation": {
+          "investigator": "Chris Waugh",
+          "status": "CLOSED_NFA"
+        },
+        "numberOfFailedAttempts": 5
+      }
+
+      const expected = {
+        "_correlationId": "some-uuid-correlation-id",
+        "audits": [
+          {
+            "auditAt": {
+              "$date": "2020-06-24T10:40:18.780Z",
+            },
+            "auditOperation": "INVESTIGATED",
+            "investigationStatus": "UNDER_INVESTIGATION",
+            "user": "Chris Waugh",
+          },
+          {
+            "auditAt": {
+              "$date": "2020-06-24T10:40:23.439Z",
+            },
+            "auditOperation": "INVESTIGATED",
+            "investigationStatus": "CLOSED_NFA",
+            "user": "Chris Waugh",
+          }
+        ],
+        "clonedFrom": "GBR-2023-CC-C3A82642B",
+        "dateCreated": new Date("2020-06-24T10:39:32.000Z"),
+        "documentNumber": "GBR-2020-CC-1BC924FCF",
+        "documentType": "CatchCertificate",
+        "documentUri": "undefined/qr/export-certificates/_44fd226f-598f-4615-930f-716b2762fea4.pdf",
+        "failedSubmissions": 5,
+        "landingsCloned": false,
+        "parentDocumentVoid": false,
+        "requestedByAdmin": false,
+        "status": "DRAFT",
+        "userReference": "MY REF",
+      };
+
+      const res = toCcDefraReport('GBR-2020-CC-1BC924FCF', correlationId, DocumentStatuses.Draft, requestByAdmin, mockGetVesselIdx, localExampleCc);
+
+      expect(res).toEqual(expected);
+    });
+
+    it('can map a whole CC document without conservation', () => {
+      const localExampleCc = {
+        "createdAt": new Date("2020-06-24T10:39:32.000Z"),
+        "__t": "catchCert",
+        "createdBy": "ABCD-EFGH-IJKL-MNOP-QRST-UVWX-YZ12",
+        "status": "COMPLETE",
+        "documentNumber": "GBR-2020-CC-1BC924FCF",
+        "clonedFrom": "GBR-2023-CC-C3A82642B",
+        "landingsCloned": false,
+        "parentDocumentVoid": false,
+        "audit": [
+          {
+            "eventType": "INVESTIGATED",
+            "triggeredBy": "Chris Waugh",
+            "timestamp": {
+              "$date": "2020-06-24T10:40:18.780Z"
+            },
+            "data": {
+              "investigationStatus": "UNDER_INVESTIGATION"
+            }
+          },
+          {
+            "eventType": "INVESTIGATED",
+            "triggeredBy": "Chris Waugh",
+            "timestamp": {
+              "$date": "2020-06-24T10:40:23.439Z"
+            },
+            "data": {
+              "investigationStatus": "CLOSED_NFA"
+            }
+          }
+        ],
+        "userReference": "MY REF",
+        "exportData": {
+          "exporterDetails": {
+            "contactId": "an id",
+            "accountId": "an id acc",
+            "exporterFullName": "Bob Exporter",
+            "exporterCompanyName": "Exporter Co",
+            "addressOne": "123 Unit 1 CJC Fish Ltd 17 Old Edinburgh Road",
+            "townCity": "T",
+            "postcode": "P",
+            "buildingNumber": "123",
+            "subBuildingName": "Unit 1",
+            "buildingName": "CJC Fish Ltd",
+            "streetName": "17  Old Edinburgh Road",
+            "county": "West Midlands",
+            "country": "England",
+            "_dynamicsAddress": { "dynamicsData": 'original address' },
+            "_dynamicsUser": {
+              "firstName": 'Bob',
+              "lastName": 'Exporter'
+            }
+          },
+          "products": [
+            {
+              "species": "European lobster (LBE)",
+              "speciesId": "4e5fff23-184c-4a46-beef-e93ccd040392",
+              "speciesCode": "LBE",
+              "scientificName": "some scientific name",
+              "commodityCode": "1234",
+              "commodityCodeDescription": "some commodity code description",
+              "state": {
+                "code": "ALI",
+                "name": "Alive"
+              },
+              "presentation": {
+                "code": "WHL",
+                "name": "Whole"
+              },
+              "factor": 1,
+              "caughtBy": [
+                {
+                  "vessel": "WIRON 5",
+                  "pln": "H1100",
+                  "id": "5a259dc5-b05c-44fe-8d3f-7ee8cc99bfca",
+                  "date": "2020-06-24",
+                  "faoArea": "FAO27",
+                  "flag": "GBR",
+                  "cfr": "GBRC17737",
+                  "weight": 100,
+                  "dataEverExpected": true,
+                  "landingDataExpectedDate": "2023-10-26",
+                  "landingDataEndDate": "2023-10-27",
+                }
+              ]
+            },
+            {
+              "species": "Atlantic cod (COD)",
+              "speciesId": "6763576e-c5b8-41cf-a708-f4b9a470623e",
+              "speciesCode": "COD",
+              "scientificName": "Gadus morhua",
+              "commodityCode": "1234",
+              "commodityCodeDescription": `Fresh or chilled fillets of cod "Gadus morhua, Gadus ogac, Gadus macro...`,
+              "state": {
+                "code": "FRE",
+                "name": "Fresh"
+              },
+              "presentation": {
+                "code": "GUT",
+                "name": "Gutted"
+              },
+              "factor": 1.17,
+              "caughtBy": [
+                {
+                  "vessel": "WIRON 5",
+                  "pln": "H1100",
+                  "id": "2e9da3e5-5e31-4555-abb4-9e5e53b8d0ef",
+                  "date": "2020-06-02",
+                  "faoArea": "FAO27",
+                  "weight": 200,
+                  "flag": "GBR",
+                  "cfr": "GBRC17737",
+                  "dataEverExpected": false
+                },
+                {
+                  "vessel": "WIRON 6",
+                  "pln": "H2200",
+                  "id": "4cf6cb44-28ad-4731-bea4-05051ae2edd9",
+                  "date": "2020-05-31",
+                  "faoArea": "FAO27",
+                  "weight": 200,
+                  "flag": "GBR",
+                  "cfr": "GBRC17737"
+                }
+              ]
+            }
+          ],
+          "conservation": undefined,
+          "exportedFrom": "United Kingdom",
+          "exportedTo": {
+            "officialCountryName": "Nigeria",
+            "isoCodeAlpha2": "NG",
+            "isoCodeAlpha3": "NGA",
+            "isoNumericCode": "566"
+          },
+          "transportation": {
+            "vehicle": 'truck',
+            "departurePlace": "Hull",
+            "cmr": true
+          },
+          "transportations": [{
+            "id": 0,
+            "freightBillNumber": '0',
+            "vehicle": "truck",
+            "departurePlace": "Hull",
+            "exportedTo": {
+              "officialCountryName": "Nigeria",
+              "isoCodeAlpha2": "NG",
+              "isoCodeAlpha3": "NGA",
+              "isoNumericCode": "566"
+            },
+            "transportDocuments": [{
+              "name": "Invoice",
+              "reference": "INV001"
+            }]
+          }, {
+            "id": 0,
+            "freightBillNumber": '0',
+            "vehicle": "plane",
+            "departurePlace": "Hull",
+            "exportedTo": {
+              "officialCountryName": "Nigeria",
+              "isoCodeAlpha2": "NG",
+              "isoCodeAlpha3": "NGA",
+              "isoNumericCode": "566"
+            },
+            "transportDocuments": [{
+              "name": "Invoice",
+              "reference": "INV001"
+            }]
+          }, {
+            "id": 0,
+            "freightBillNumber": '0',
+            "vehicle": "train",
+            "departurePlace": "Hull",
+            "exportedTo": {
+              "officialCountryName": "Nigeria",
+              "isoCodeAlpha2": "NG",
+              "isoCodeAlpha3": "NGA",
+              "isoNumericCode": "566"
+            },
+            "transportDocuments": [{
+              "name": "Invoice",
+              "reference": "INV001"
+            }]
+          }, {
+            "id": 0,
+            "freightBillNumber": '0',
+            "vehicle": "containerVessel",
+            "departurePlace": "Hull",
+            "exportedTo": {
+              "officialCountryName": "Nigeria",
+              "isoCodeAlpha2": "NG",
+              "isoCodeAlpha3": "NGA",
+              "isoNumericCode": "566"
+            },
+            "transportDocuments": [{
+              "name": "Invoice",
+              "reference": "INV001"
+            }]
+          }, {
+            "id": 0,
+            "freightBillNumber": '0',
+            "vehicle": "unknown",
+            "departurePlace": "Hull",
+            "exportedTo": {
+              "officialCountryName": "Nigeria",
+              "isoCodeAlpha2": "NG",
+              "isoCodeAlpha3": "NGA",
+              "isoNumericCode": "566"
+            },
+            "transportDocuments": []
+          }, undefined]
+        },
+        "createdByEmail": "foo@foo.com",
+        "documentUri": "_44fd226f-598f-4615-930f-716b2762fea4.pdf",
+        "investigation": {
+          "investigator": "Chris Waugh",
+          "status": "CLOSED_NFA"
+        },
+        "numberOfFailedAttempts": 5
+      }
+
+      const res = toCcDefraReport('GBR-2020-CC-1BC924FCF', correlationId, DocumentStatuses.Draft, requestByAdmin, mockGetVesselIdx, localExampleCc);
+
+      expect(res.conservationReference).toBeUndefined();
+    });
+
     it('can map a whole CC document with a transport', () => {
       const res = toCcDefraReport('GBR-2020-CC-1BC924FCF', correlationId, DocumentStatuses.Draft, requestByAdmin, mockGetVesselIdx, {
         "createdAt": new Date("2020-06-24T10:39:32.000Z"),
@@ -441,112 +750,112 @@ describe('Mapping data for DEFRA Central Reporting HUB', () => {
       });
 
       expect(res.landings).toEqual([
-          {
-            date: "2020-06-24",
-            species: {
-              name: "European lobster (LBE)",
-              code: "LBE",
-              scientificName: "some scientific name"
-            },
-            state: {
-              name: "Alive",
-              code: "ALI",
-            },
-            presentation: {
-              name: "Whole",
-              code: "WHL",
-            },
-            cnCode: "1234",
-            cnCodeDesc: "some commodity code description",
-            vessel: {
-              name: "WIRON 5",
-              pln: "H1100",
-              length: 12,
-              fao: "FAO27",
-              flag: "GBR",
-              cfr: "GBRC17737"
-            },
-            exportWeight: 100,
-            isDirectLanding: false,
-            vesselAdministration: "England",
-            dataEverExpected: true,
-            landingDataExpectedDate: "2023-10-26",
-            landingDataEndDate: "2023-10-27",
-            landingDataExpectedAtSubmission: false,
-            isLate: undefined,
-            dateDataReceived: undefined
+        {
+          date: "2020-06-24",
+          species: {
+            name: "European lobster (LBE)",
+            code: "LBE",
+            scientificName: "some scientific name"
           },
-          {
-            date: "2020-06-02",
-            species: {
-              name: "Atlantic cod (COD)",
-              code: "COD",
-              scientificName: "Gadus morhua"
-            },
-            state: {
-              name: "Fresh",
-              code: "FRE",
-            },
-            presentation: {
-              name: "Gutted",
-              code: "GUT",
-            },
-            cnCode: "1234",
-            cnCodeDesc: `Fresh or chilled fillets of cod "Gadus morhua, Gadus ogac, Gadus macro...`,
-            vessel: {
-              name: "WIRON 5",
-              pln: "H1100",
-              length: 12,
-              fao: "FAO27",
-              flag: "GBR",
-              cfr: "GBRC17737"
-            },
-            exportWeight: 200,
-            isDirectLanding: false,
-            dataEverExpected: false,
-            vesselAdministration: "England",
-            landingDataExpectedDate: undefined,
-            landingDataEndDate: undefined,
-            landingDataExpectedAtSubmission: undefined,
-            isLate: undefined,
-            dateDataReceived: undefined
+          state: {
+            name: "Alive",
+            code: "ALI",
           },
-          {
-            date: "2020-05-31",
-            species: {
-              name: "Atlantic cod (COD)",
-              code: "COD",
-              scientificName: "Gadus morhua"
-            },
-            state: {
-              name: "Fresh",
-              code: "FRE",
-            },
-            presentation: {
-              name: "Gutted",
-              code: "GUT",
-            },
-            cnCode: "1234",
-            cnCodeDesc: `Fresh or chilled fillets of cod "Gadus morhua, Gadus ogac, Gadus macro...`,
-            vessel: {
-              name: "WIRON 6",
-              pln: "H2200",
-              length: 12,
-              fao: "FAO27",
-              flag: "GBR",
-              cfr: "GBRC17737"
-            },
-            exportWeight: 200,
-            isDirectLanding: false,
-            dataEverExpected: undefined,
-            vesselAdministration: "England",
-            landingDataExpectedDate: undefined,
-            landingDataEndDate: undefined,
-            landingDataExpectedAtSubmission: undefined,
-            isLate: undefined,
-            dateDataReceived: undefined
-          }
-        ]);
+          presentation: {
+            name: "Whole",
+            code: "WHL",
+          },
+          cnCode: "1234",
+          cnCodeDesc: "some commodity code description",
+          vessel: {
+            name: "WIRON 5",
+            pln: "H1100",
+            length: 12,
+            fao: "FAO27",
+            flag: "GBR",
+            cfr: "GBRC17737"
+          },
+          exportWeight: 100,
+          isDirectLanding: false,
+          vesselAdministration: "England",
+          dataEverExpected: true,
+          landingDataExpectedDate: "2023-10-26",
+          landingDataEndDate: "2023-10-27",
+          landingDataExpectedAtSubmission: false,
+          isLate: undefined,
+          dateDataReceived: undefined
+        },
+        {
+          date: "2020-06-02",
+          species: {
+            name: "Atlantic cod (COD)",
+            code: "COD",
+            scientificName: "Gadus morhua"
+          },
+          state: {
+            name: "Fresh",
+            code: "FRE",
+          },
+          presentation: {
+            name: "Gutted",
+            code: "GUT",
+          },
+          cnCode: "1234",
+          cnCodeDesc: `Fresh or chilled fillets of cod "Gadus morhua, Gadus ogac, Gadus macro...`,
+          vessel: {
+            name: "WIRON 5",
+            pln: "H1100",
+            length: 12,
+            fao: "FAO27",
+            flag: "GBR",
+            cfr: "GBRC17737"
+          },
+          exportWeight: 200,
+          isDirectLanding: false,
+          dataEverExpected: false,
+          vesselAdministration: "England",
+          landingDataExpectedDate: undefined,
+          landingDataEndDate: undefined,
+          landingDataExpectedAtSubmission: undefined,
+          isLate: undefined,
+          dateDataReceived: undefined
+        },
+        {
+          date: "2020-05-31",
+          species: {
+            name: "Atlantic cod (COD)",
+            code: "COD",
+            scientificName: "Gadus morhua"
+          },
+          state: {
+            name: "Fresh",
+            code: "FRE",
+          },
+          presentation: {
+            name: "Gutted",
+            code: "GUT",
+          },
+          cnCode: "1234",
+          cnCodeDesc: `Fresh or chilled fillets of cod "Gadus morhua, Gadus ogac, Gadus macro...`,
+          vessel: {
+            name: "WIRON 6",
+            pln: "H2200",
+            length: 12,
+            fao: "FAO27",
+            flag: "GBR",
+            cfr: "GBRC17737"
+          },
+          exportWeight: 200,
+          isDirectLanding: false,
+          dataEverExpected: undefined,
+          vesselAdministration: "England",
+          landingDataExpectedDate: undefined,
+          landingDataEndDate: undefined,
+          landingDataExpectedAtSubmission: undefined,
+          isLate: undefined,
+          dateDataReceived: undefined
+        }
+      ]);
     });
 
     it('can map a whole CC document without _dynamicUser', () => {
@@ -1513,36 +1822,36 @@ describe('Mapping data for DEFRA Central Reporting HUB', () => {
 
     it('will map products with a single landing with updated admin data', () => {
       const product = {
-          "species": "Atlantic cod (COD)",
-          "speciesId": "6763576e-c5b8-41cf-a708-f4b9a470623e",
-          "speciesCode": "COD",
-          "commodityCode": "03025110",
-          "state": {
-            "code": "FRE",
-            "name": "Fresh",
-            "admin": "Fr"
+        "species": "Atlantic cod (COD)",
+        "speciesId": "6763576e-c5b8-41cf-a708-f4b9a470623e",
+        "speciesCode": "COD",
+        "commodityCode": "03025110",
+        "state": {
+          "code": "FRE",
+          "name": "Fresh",
+          "admin": "Fr"
+        },
+        "presentation": {
+          "code": "GUT",
+          "name": "Gutted",
+          "admin": "Filleted and skin",
+        },
+        "factor": 1.17,
+        "caughtBy": [
+          {
+            "vessel": "WIRON 5",
+            "pln": "H1100",
+            "id": "2e9da3e5-5e31-4555-abb4-9e5e53b8d0ef",
+            "date": "2020-06-02",
+            "faoArea": "FAO27",
+            "weight": 200,
+            "flag": "GBR",
+            "cfr": "GBRC17737"
           },
-          "presentation": {
-            "code": "GUT",
-            "name": "Gutted",
-            "admin": "Filleted and skin",
-          },
-          "factor": 1.17,
-          "caughtBy": [
-            {
-              "vessel": "WIRON 5",
-              "pln": "H1100",
-              "id": "2e9da3e5-5e31-4555-abb4-9e5e53b8d0ef",
-              "date": "2020-06-02",
-              "faoArea": "FAO27",
-              "weight": 200,
-              "flag": "GBR",
-              "cfr": "GBRC17737"
-            },
-          ],
-         "speciesAdmin": "Lobster Admin",
-         "speciesOverriddenByAdmin": true,
-         "commodityCodeAdmin": "1234 - ADMIN"
+        ],
+        "speciesAdmin": "Lobster Admin",
+        "speciesOverriddenByAdmin": true,
+        "commodityCodeAdmin": "1234 - ADMIN"
       };
 
       const res = SUT.toDefraCcLanding(product, { vehicle: "truck", exportedFrom: "United Kingdom", cmr: true }, '2023-05-01', mockGetVesselIdx);
@@ -1572,14 +1881,14 @@ describe('Mapping data for DEFRA Central Reporting HUB', () => {
         exportWeight: 200,
         isDirectLanding: false,
         vesselAdministration: "England",
-         speciesAdmin: "Lobster Admin",
-         adminState: "Fr",
-         adminPresentation: "Filleted and skin",
-         speciesOverriddenByAdmin: true,
-         adminCommodityCode: "1234 - ADMIN",
+        speciesAdmin: "Lobster Admin",
+        adminState: "Fr",
+        adminPresentation: "Filleted and skin",
+        speciesOverriddenByAdmin: true,
+        adminCommodityCode: "1234 - ADMIN",
       }]);
 
-   });
+    });
 
     it('will map products with multiple landings', () => {
       const product = {
