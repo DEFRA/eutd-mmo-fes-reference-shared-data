@@ -26,20 +26,7 @@ export const addToReportQueue = async (documentNumber: string, message: ServiceB
     logger.error(logMessage);
   } else if (enableReportToQueue) {
 
-    logger.info(`[AZURE-SERVICE-BUS][QUEUE-MESSAGE][${queueName}][DOCUMENT-NUMBER][${documentNumber}][CORRELATION-ID][${message.sessionId || message.correlationId}]`);
-
-    const sbClient = new ServiceBusClient(queueUrl);
-    const queueSender : ServiceBusSender = sbClient.createSender(queueName);
-
-    try {
-      await queueSender.sendMessages(message);
-      await queueSender.close();
-      logger.info(`[AZURE-SERVICE-BUS][PUSHED-TO-QUEUE][${queueName}][DOCUMENT-NUMBER][${documentNumber}][CORRELATION-ID][${message.sessionId || message.correlationId}][SUCCESS][${JSON.stringify(message)}]`);
-    } catch (e) {
-      logger.error(`[AZURE-SERVICE-BUS][PUSH-TO-QUEUE][ERROR][${queueName}][DOCUMENT-NUMBER][${documentNumber}][CORRELATION-ID][${message.sessionId || message.correlationId}][${e.stack || e}]`)
-    } finally {
-      await sbClient.close();
-    }
+          await callEnableReportToQueue(queueUrl,documentNumber, queueName, message);
   } else {
     const filePath = `${__dirname}/../../../service_bus/`;
     const subFolder = `${queueName.replace(/[.]/gi,'-')}`;
@@ -62,3 +49,19 @@ export const addToReportQueue = async (documentNumber: string, message: ServiceB
     logger.info(`[AZURE-SERVICE-BUS][ADD-TO-REPORT-LOCAL-FILESYSTEM][${subFolder}/${fileName}.json]`);
   }
 };
+const callEnableReportToQueue = async (queueUrl: string,documentNumber:string, queueName: string, message: ServiceBusMessage) => {
+  logger.info(`[AZURE-SERVICE-BUS][QUEUE-MESSAGE][${queueName}][DOCUMENT-NUMBER][${documentNumber}][CORRELATION-ID][${message.sessionId || message.correlationId}]`);
+
+  const sbClient = new ServiceBusClient(queueUrl);
+  const queueSender : ServiceBusSender = sbClient.createSender(queueName);
+
+  try {
+    await queueSender.sendMessages(message);
+    await queueSender.close();
+    logger.info(`[AZURE-SERVICE-BUS][PUSHED-TO-QUEUE][${queueName}][DOCUMENT-NUMBER][${documentNumber}][CORRELATION-ID][${message.sessionId || message.correlationId}][SUCCESS][${JSON.stringify(message)}]`);
+  } catch (e) {
+    logger.error(`[AZURE-SERVICE-BUS][PUSH-TO-QUEUE][ERROR][${queueName}][DOCUMENT-NUMBER][${documentNumber}][CORRELATION-ID][${message.sessionId || message.correlationId}][${e.stack ?? e}]`)
+  } finally {
+    await sbClient.close();
+  }
+}
