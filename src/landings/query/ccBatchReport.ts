@@ -6,7 +6,117 @@ import * as Transformations from '../transformations/transformations'
 export const TRANSPORT_VEHICLE_DIRECT = 'directLanding';
 
 const _ = require('lodash');
-const fmtDuration = d => `${d.days()}.${d.hours()}.${d.minutes()}.${d.seconds()}`
+const fmtDuration = d => `${d.days()}.${d.hours()}.${d.minutes()}.${d.seconds()}`;
+const getDateFrom = (pdateFrom?: moment.Moment | null) => pdateFrom ?? moment('19700101');
+const getDateTo = (pdateTo?: moment.Moment | null) => pdateTo ?? moment('20700101');
+const getArea = (pAreas?: string[]) => pAreas ?? ['Northern Ireland', 'Isle of Man', 'Channel Islands', 'Guernsey', 'Jersey', 'England', 'Wales', 'Scotland', 'Isle of Man'];
+const updateForLandingTotals = (q: ICcQueryResult, r: ICcBatchValidationReport) => {
+  r.landingBreakdowns = '';
+  q.landingTotalBreakdown
+    .map(landingAggregatedItemBreakdown => provideLandingBreakdown(q.species, landingAggregatedItemBreakdown))
+    .forEach((landingBreakdownDetail, index, arr) => r.landingBreakdowns += landingBreakdownDetail + `${(index === arr.length - 1) ? '' : '\n'}`);
+
+  const landedDecLandings = q.landingTotalBreakdown.filter(landingAggregatedItemBreakdown => !landingAggregatedItemBreakdown.isEstimate);
+  if (landedDecLandings.length > 0) {
+    const aggregatedLandedDecWeight = _.sumBy(landedDecLandings, landedDecLanding => landedDecLanding.weight);
+    r.aggregatedLandedDecWeight = (aggregatedLandedDecWeight > 0) ? aggregatedLandedDecWeight : undefined;
+
+    const aggregatedLiveWeight = _.sumBy(q.landingTotalBreakdown, landedDecLanding => landedDecLanding.liveWeight);
+    r.aggregatedLiveWeight = (aggregatedLiveWeight > 0) ? aggregatedLiveWeight : undefined;
+  }
+
+  const estimatedLandings = q.landingTotalBreakdown.filter(landingAggregatedItemBreakdown => landingAggregatedItemBreakdown.isEstimate);
+  if (estimatedLandings.length > 0) {
+    r.aggregatedEstimateWeight = _.sumBy(estimatedLandings, estimatedLanding => estimatedLanding.weight);
+
+    r.aggregatedEstimateWeightPlusTolerance = _.sumBy(estimatedLandings
+      .map(landingAggregatedItemBreakdown => landingAggregatedItemBreakdown.liveWeight), liveWeight => liveWeight + liveWeight * 0.1);
+
+    // Landed Weight Exceed By: Live weight from Exporter minus “Estimate Weight + Tolerance” depending upon source of validation data.
+    r.exportedWeightExceedingEstimateLandedWeight = _undefinedIfNoLandings(
+      estimatedLandings.length,
+      q.weightOnAllCerts > r.aggregatedEstimateWeightPlusTolerance ? q.weightOnAllCerts - r.aggregatedEstimateWeightPlusTolerance : undefined
+    );
+  }
+};
+const batchReportFilter = (q: ICcQueryResult) => {
+
+  const createUrl = (rawDataType) => {
+    return `{BASE_URL}/reference/api/v1/extendedData/${rawDataType}?dateLanded=${q.dateLanded}&rssNumber=${q.rssNumber}`
+  }
+
+  const r: ICcBatchValidationReport = getCcBatchValidationReport(q);
+
+  if (q.landingTotalBreakdown) {
+    updateForLandingTotals(q, r);
+  }
+
+  /*
+   * https://eaflood.atlassian.net/browse/FI0-41
+   */
+
+  const unavailabilityDuration = q.isLandingExists ? q.durationBetweenCertCreationAndFirstLandingRetrieved : q.durationSinceCertCreation
+
+  if (moment.duration(unavailabilityDuration) < moment.duration())
+    r.FI0_41_unavailabilityDuration = '0.0.0.0'
+  else if (moment.duration(unavailabilityDuration) > moment.duration(40, 'days'))
+    r.FI0_41_unavailabilityDuration = '40 days+'
+  else
+    r.FI0_41_unavailabilityDuration = fmtDuration(moment.duration(unavailabilityDuration))
+
+
+  /*
+   * https://eaflood.atlassian.net/browse/FI0-47
+   */
+
+
+
+
+
+  let failures = 0;
+
+  if (q.isLandingExists) {
+    failures = _getSpeciesFailures(failures, _checkSpecies, r, q);
+  } else {
+    failures = _getSpeciesFailures(failures, _ => _, r, q);
+  }
+
+  r.FI0_136_numberOfFailedValidations = failures;
+  r.rawLandingsUrl = createUrl('rawLandings');
+  r.salesNotesUrl = createUrl('salesNotes');
+
+  return r
+}
+
+function _getSpeciesFailures(speciesFailures: number, checkSpecies: any, r: ICcBatchValidationReport, q: ICcQueryResult) {
+  if (r.FI0_47_unavailabilityExceeds14Days === 'Fail') {
+    speciesFailures++;
+    speciesFailures = checkSpecies(speciesFailures, _checkWeightsForOveruse, r, q);
+  } else {
+    speciesFailures = checkSpecies(speciesFailures, _checkWeightsForOveruse, r, q);
+  }
+
+  return speciesFailures;
+}
+
+function _checkSpecies(speciesFailures: number, checkWeight: any, r: ICcBatchValidationReport, q: ICcQueryResult) {
+  if (r.FI0_289_speciesMismatch === 'Fail') {
+    speciesFailures++;
+  } else {
+    speciesFailures = checkWeight(speciesFailures, q);
+  }
+
+  return speciesFailures;
+}
+
+function _checkWeightsForOveruse(failures: number, q: ICcQueryResult) {
+  if (q.isOverusedAllCerts) {
+    failures++;
+  }
+
+  return failures;
+}
+
 
 export const ccBatchReport = (
   rawValidationCertificates: IterableIterator<ICcQueryResult>,
@@ -15,14 +125,10 @@ export const ccBatchReport = (
   pAreas?: string[]
 ): IterableIterator<ICcBatchValidationReport> => {
 
-  const dateFrom = pdateFrom || moment('19700101')
-  const dateTo = pdateTo || moment('20700101')
+  const dateFrom = getDateFrom(pdateFrom);
+  const dateTo = getDateTo(pdateTo);
 
-  let areas = pAreas || [];
-
-  if (areas.length === 0) {
-    areas = ['Northern Ireland', 'Isle of Man', 'Channel Islands', 'Guernsey', 'Jersey', 'England', 'Wales', 'Scotland', 'Isle of Man'];
-  }
+  const areas = getArea(pAreas);
 
   logger.info(`[CATCH-CERT-REPORT][DATE-FROM]${dateFrom.toISOString()}[DATE-TO]${dateTo.toISOString()}[AREAS]${areas}`);
 
@@ -30,114 +136,9 @@ export const ccBatchReport = (
     ((moment.utc(q.createdAt) >= dateFrom && moment.utc(q.createdAt) <= dateTo) && areas.includes(q.da))
 
   return Transformations.imap(
-    Transformations.ifilter(rawValidationCertificates, filter), (q: ICcQueryResult) => {
-
-      const createUrl = (rawDataType) => {
-        return `{BASE_URL}/reference/api/v1/extendedData/${rawDataType}?dateLanded=${q.dateLanded}&rssNumber=${q.rssNumber}`
-      }
-
-      const r = <ICcBatchValidationReport>{}
-
-      pickRfromQ(q, r);
-
-      if (q.landingTotalBreakdown) {
-        r.landingBreakdowns = '';
-        q.landingTotalBreakdown
-          .map(landingAggregatedItemBreakdown => provideLandingBreakdown(q.species, landingAggregatedItemBreakdown))
-          .forEach((landingBreakdownDetail, index, arr) => r.landingBreakdowns += landingBreakdownDetail + `${(index === arr.length - 1) ? '' : '\n'}`);
-
-        const landedDecLandings = q.landingTotalBreakdown.filter(landingAggregatedItemBreakdown => !landingAggregatedItemBreakdown.isEstimate);
-        if (landedDecLandings.length > 0) {
-          const aggregatedLandedDecWeight = _.sumBy(landedDecLandings, landedDecLanding => landedDecLanding.weight);
-          r.aggregatedLandedDecWeight = (aggregatedLandedDecWeight > 0) ? aggregatedLandedDecWeight : undefined;
-
-          const aggregatedLiveWeight = _.sumBy(q.landingTotalBreakdown, landedDecLanding => landedDecLanding.liveWeight);
-          r.aggregatedLiveWeight = (aggregatedLiveWeight > 0) ? aggregatedLiveWeight : undefined;
-        }
-
-        const estimatedLandings = q.landingTotalBreakdown.filter(landingAggregatedItemBreakdown => landingAggregatedItemBreakdown.isEstimate);
-        if (estimatedLandings.length > 0) {
-          r.aggregatedEstimateWeight = _.sumBy(estimatedLandings, estimatedLanding => estimatedLanding.weight);
-
-          r.aggregatedEstimateWeightPlusTolerance = _.sumBy(estimatedLandings
-            .map(landingAggregatedItemBreakdown => landingAggregatedItemBreakdown.liveWeight), liveWeight => liveWeight + liveWeight * 0.1);
-
-          // Landed Weight Exceed By: Live weight from Exporter minus “Estimate Weight + Tolerance” depending upon source of validation data.
-          r.exportedWeightExceedingEstimateLandedWeight = _undefinedIfNoLandings(
-            estimatedLandings.length,
-            q.weightOnAllCerts > r.aggregatedEstimateWeightPlusTolerance ? q.weightOnAllCerts - r.aggregatedEstimateWeightPlusTolerance : undefined
-          );
-        }
-      }
-
-      /*
-       * https://eaflood.atlassian.net/browse/FI0-41
-       */
-
-      const unavailabilityDuration = q.isLandingExists ? q.durationBetweenCertCreationAndFirstLandingRetrieved : q.durationSinceCertCreation
-
-      if (moment.duration(unavailabilityDuration) < moment.duration())
-        r.FI0_41_unavailabilityDuration = '0.0.0.0'
-      else if (moment.duration(unavailabilityDuration) > moment.duration(40, 'days'))
-        r.FI0_41_unavailabilityDuration = '40 days+'
-      else
-        r.FI0_41_unavailabilityDuration = fmtDuration(moment.duration(unavailabilityDuration))
-
-
-      /*
-       * https://eaflood.atlassian.net/browse/FI0-47
-       */
-
-
-
-
-
-      let failures = 0;
-
-      if (q.isLandingExists) {
-        failures = _getSpeciesFailures(failures, _checkSpecies);
-      } else {
-        failures = _getSpeciesFailures(failures, _ => _);
-      }
-
-      r.FI0_136_numberOfFailedValidations = failures;
-      r.rawLandingsUrl = createUrl('rawLandings');
-      r.salesNotesUrl = createUrl('salesNotes');
-
-      return r
-
-      function _getSpeciesFailures(speciesFailures, checkSpecies) {
-        if (r.FI0_47_unavailabilityExceeds14Days === 'Fail') {
-          speciesFailures++;
-          speciesFailures = checkSpecies(speciesFailures, _checkWeightsForOveruse);
-        } else {
-          speciesFailures = checkSpecies(speciesFailures, _checkWeightsForOveruse);
-        }
-
-        return speciesFailures;
-      }
-
-      function _checkSpecies(speciesFailures, checkWeight) {
-        if (r.FI0_289_speciesMismatch === 'Fail') {
-          speciesFailures++;
-        } else {
-          speciesFailures = checkWeight(speciesFailures);
-        }
-
-        return speciesFailures;
-      }
-
-      function _checkWeightsForOveruse(failures) {
-        if (q.isOverusedAllCerts) {
-          failures++;
-        }
-
-        return failures;
-      }
-
-
-    })
+    Transformations.ifilter(rawValidationCertificates, filter), batchReportFilter)
 }
+
 const provideLandingBreakdown = (species, landingAggregatedItemBreakdown) => {
   const presentation = `presentation: ${landingAggregatedItemBreakdown.presentation}, `;
   const state = `state: ${landingAggregatedItemBreakdown.state}, `;
@@ -152,7 +153,9 @@ const provideLandingBreakdown = (species, landingAggregatedItemBreakdown) => {
     `source of validation: ${landingAggregatedItemBreakdown.source}`
 }
 
-const pickRfromQ = (q: ICcQueryResult, r: ICcBatchValidationReport) => {
+const getCcBatchValidationReport = (q: ICcQueryResult) => {
+  const r = <ICcBatchValidationReport>{};
+
   r.documentNumber = q.documentNumber
   r.documentType = 'CC'
   r.documentStatus = q.status
@@ -216,16 +219,17 @@ const pickRfromQ = (q: ICcQueryResult, r: ICcBatchValidationReport) => {
       r.FI0_47_unavailabilityExceeds14Days = undefined
 
   } else if ((moment.duration(q.durationBetweenCertCreationAndFirstLandingRetrieved)) > moment.duration(14, 'days')) {
-    
-      r.FI0_47_unavailabilityExceeds14Days = 'Fail'
-   
-  } else{
-        r.FI0_47_unavailabilityExceeds14Days = 'Pass'
+
+    r.FI0_47_unavailabilityExceeds14Days = 'Fail'
+
+  } else {
+    r.FI0_47_unavailabilityExceeds14Days = 'Pass'
   }
-      
+
 
   return r;
 }
+
 function _undefinedIfNoLandings(numberOfLandings, valueIfLandingsAvailable) {
   if (numberOfLandings === 0) {
     return undefined
