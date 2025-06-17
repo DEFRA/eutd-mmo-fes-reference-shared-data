@@ -11,6 +11,9 @@ export const TOLERANCE_IN_KG = 50;
 export const isInRetrospectivePeriod: (queryTime: moment.Moment, item: ICcQueryResult) => boolean = (queryTime: moment.Moment, item: ICcQueryResult) =>
     item.extended.landingDataEndDate === undefined ? moment.duration(item.durationSinceCertCreation) <= moment.duration(14, 'days') : queryTime.isSameOrBefore(moment.utc(item.extended.landingDataEndDate), 'day')
 
+const shouldThrowQueryTimeError = (queryTime: moment.Moment | null) => !(queryTime && queryTime.isValid());
+const unwoundCatchCertsFilter = (c: any) => c.extended.vesselOverriddenByAdmin || typeof c.rssNumber !== 'undefined';
+
 export function* ccQuery(
     catchCerts: any[],
     landings: ILanding[],
@@ -18,7 +21,7 @@ export function* ccQuery(
     queryTime: moment.Moment | null,
     getSpeciesAliases: (speciesCode: string) => string[]): IterableIterator<ICcQueryResult> {
 
-    if (!(queryTime && queryTime.isValid()))
+    if (shouldThrowQueryTimeError(queryTime))
         throw new Error('invalid queryTime parameter')
 
     /*
@@ -45,7 +48,7 @@ export function* ccQuery(
                 unwindCatchCerts(catchCerts),
                 licenceLookup
             ),
-            c => c.extended.vesselOverriddenByAdmin || typeof c.rssNumber !== 'undefined'
+            unwoundCatchCertsFilter
         )
 
     /*
@@ -238,7 +241,7 @@ export function* ccQuery(
                     r.speciesAlias = speciesAliasCode ? 'Y' : 'N';
                     r.speciesAnomaly = speciesAliasCode;
 
-                    const speciesCodeOnLanding = speciesAliasCode ? speciesAliasCode : item.species;
+                    const speciesCodeOnLanding = speciesAliasCode ?? item.species;
                     r = performWeightOveruseCheck(r, speciesCodeOnLanding, item.species);
                 } else {
                     // Landing, but species not on landing

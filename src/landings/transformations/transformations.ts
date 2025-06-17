@@ -32,7 +32,7 @@ const _combineGroupedLandings = (landings: ILandingItem[], getToLiveWeightFactor
     species: landing.species,
     // convert to grams to avoid floating point issues
     weight: _.sumBy(landings, _landing => _landing.weight * 1000) / 1000,
-    factor: factor ? factor : 1,
+    factor: factor ?? 1,
     state: landing.state,
     presentation: landing.presentation
   };

@@ -259,7 +259,7 @@ export class BoomiService {
     return result ? this.mapAddresses(result) : [];
   }
 
-  static mapAddresses = (apiResponse: IBoomiAddressResponse): CertificateAddress[] => {
+  static readonly mapAddresses = (apiResponse: IBoomiAddressResponse): CertificateAddress[] => {
     const response = (apiResponse && apiResponse.results)
       ? apiResponse.results.map(result => {
         return {
