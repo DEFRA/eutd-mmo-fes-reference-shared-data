@@ -168,6 +168,12 @@ export const aggregateOnLandingDate = (landings: ILanding[]): ILandingAggregated
         }).value()
     })).value()
 
+const getVoidedEvent = (catchCert: any) => catchCert.audit?.length ? getLastAuditEvent(catchCert.audit, AuditEventTypes.Voided) : undefined;
+const getPreApprovedEvent = (catchCert: any) => catchCert.audit?.length ? getLastAuditEvent(catchCert.audit, AuditEventTypes.PreApproved) : undefined;
+const getFactor = (product: any) => product.factor ?? 1;
+const nullishCoalescing = (obj: any, key: string) => obj?.[key] ?? undefined;
+const isSpeciesOverriddenByAdmin = (product: any) => !!product.speciesAdmin || !!product.state?.admin || !!product.presentation?.admin || !!product.commodityCodeAdmin
+
 export function* unwindCatchCerts(catchCerts) {
   /*
    * Unwind the referenced landings part of Catch Certificates
@@ -175,16 +181,10 @@ export function* unwindCatchCerts(catchCerts) {
    */
 
   for (const catchCert of catchCerts) {
+    const voidedEvent = getVoidedEvent(catchCert);
+    const preApprovedEvent = getPreApprovedEvent(catchCert);
+    
     const exportData = catchCert.exportData;
-
-    const voidedEvent = (catchCert.audit && catchCert.audit.length)
-      ? getLastAuditEvent(catchCert.audit, AuditEventTypes.Voided)
-      : undefined;
-
-    const preApprovedEvent = (catchCert.audit && catchCert.audit.length)
-      ? getLastAuditEvent(catchCert.audit, AuditEventTypes.PreApproved)
-      : undefined;
-
     for (const product of exportData.products) {
       for (const caughtBy of product.caughtBy) {
         yield {
@@ -192,17 +192,17 @@ export function* unwindCatchCerts(catchCerts) {
           createdAt: catchCert.createdAt,
           status: catchCert.status,
           speciesCode: product.speciesCode,
-          factor: product.factor ? product.factor : 1,
+          factor: getFactor(product),
           pln: caughtBy.pln,
           date: moment(caughtBy.date).format('YYYY-MM-DD'),
           startDate: caughtBy.startDate,
           weight: caughtBy.weight,
           extended: {
-            exporterContactId: exportData.exporterDetails ? exportData.exporterDetails.contactId : undefined,
-            exporterAccountId: exportData.exporterDetails ? exportData.exporterDetails.accountId : undefined,
-            exporterName: exportData.exporterDetails ? exportData.exporterDetails.exporterFullName : undefined,
-            exporterCompanyName: exportData.exporterDetails ? exportData.exporterDetails.exporterCompanyName : undefined,
-            exporterPostCode: exportData.exporterDetails ? exportData.exporterDetails.exporterPostCode : undefined,
+            exporterContactId: nullishCoalescing(exportData.exporterDetails, 'contactId'),
+            exporterAccountId: nullishCoalescing(exportData.exporterDetails, 'accountId'),
+            exporterName: nullishCoalescing(exportData.exporterDetails, 'exporterFullName'),
+            exporterCompanyName: nullishCoalescing(exportData.exporterDetails, 'exporterCompanyName'),
+            exporterPostCode: nullishCoalescing(exportData.exporterDetails, 'exporterPostCode'),
             vessel: caughtBy.vessel,
             landingId: caughtBy.id,
             landingStatus: caughtBy._status,
@@ -210,26 +210,26 @@ export function* unwindCatchCerts(catchCerts) {
             fao: caughtBy.faoArea,
             flag: caughtBy.flag,
             cfr: caughtBy.cfr,
-            presentation: product.presentation ? product.presentation.code : undefined,
-            presentationName: product.presentation ? product.presentation.name : undefined,
-            presentationAdmin: product.presentation ? product.presentation.admin : undefined,
+            presentation: nullishCoalescing(product.presentation, 'code'),
+            presentationName: nullishCoalescing(product.presentation, 'name'),
+            presentationAdmin: nullishCoalescing(product.presentation, 'admin'),
             species: product.species,
             speciesAdmin: product.speciesAdmin,
             scientificName: product.scientificName,
-            state: product.state ? product.state.code : undefined,
-            stateName: product.state ? product.state.name : undefined,
-            stateAdmin: product.state ? product.state.admin : undefined,
+            state: nullishCoalescing(product.state, 'code'),
+            stateName: nullishCoalescing(product.state, 'name'),
+            stateAdmin: nullishCoalescing(product.state, 'admin'),
             commodityCode: product.commodityCode,
             commodityCodeAdmin: product.commodityCodeAdmin,
             commodityCodeDescription: product.commodityCodeDescription,
             url: catchCert.documentUri,
             investigation: catchCert.investigation,
-            voidedBy: (voidedEvent && voidedEvent.triggeredBy) ? voidedEvent.triggeredBy : undefined,
-            preApprovedBy: (preApprovedEvent && preApprovedEvent.triggeredBy) ? preApprovedEvent.triggeredBy : undefined,
-            transportationVehicle: exportData.transportation && exportData.transportation.vehicle ? exportData.transportation.vehicle : undefined,
+            voidedBy: nullishCoalescing(voidedEvent, 'triggeredBy'),
+            preApprovedBy: nullishCoalescing(preApprovedEvent, 'triggeredBy'),
+            transportationVehicle: nullishCoalescing(exportData.transportation, 'vehicle'),
             numberOfSubmissions: caughtBy.numberOfSubmissions,
             vesselOverriddenByAdmin: caughtBy.vesselOverriddenByAdmin,
-            speciesOverriddenByAdmin: !!product.speciesAdmin || !!product.state?.admin || !!product.presentation?.admin || !!product.commodityCodeAdmin,
+            speciesOverriddenByAdmin: isSpeciesOverriddenByAdmin(product),
             licenceHolder: caughtBy.licenceHolder,
             dataEverExpected: caughtBy.dataEverExpected,
             landingDataExpectedDate: caughtBy.landingDataExpectedDate,
