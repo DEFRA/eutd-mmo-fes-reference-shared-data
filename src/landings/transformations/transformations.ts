@@ -153,7 +153,7 @@ export const aggregateOnLandingDate = (landings: ILanding[]): ILandingAggregated
               presentation: landing.presentation,
               state: landing.state,
               source: landing.source,
-              isEstimate: landing.source && landing.source === LandingSources.LandingDeclaration ? false : true,
+              isEstimate: landing.source !== LandingSources.LandingDeclaration,
               factor: factor,
               weight: landing.weight,
               liveWeight: factor * landing.weight

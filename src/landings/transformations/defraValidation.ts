@@ -181,7 +181,7 @@ export function toDefraAudit(systemAudit: IAuditEvent): CertificateAudit {
       auditOperation: systemAudit.eventType,
       user: systemAudit.triggeredBy,
       auditAt: systemAudit.timestamp,
-      investigationStatus: systemAudit.data && systemAudit.data.investigationStatus ? systemAudit.data.investigationStatus : undefined
+      investigationStatus: systemAudit.data?.investigationStatus ? systemAudit.data.investigationStatus : undefined
    }
 
    return result;

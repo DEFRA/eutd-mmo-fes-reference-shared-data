@@ -259,8 +259,8 @@ export class BoomiService {
     return result ? this.mapAddresses(result) : [];
   }
 
-  static readonly mapAddresses = (apiResponse: IBoomiAddressResponse): CertificateAddress[] => {
-    const response = (apiResponse && apiResponse.results)
+  static readonly mapAddresses = (apiResponse: IBoomiAddressResponse | undefined): CertificateAddress[] => {
+    const response = apiResponse?.results
       ? apiResponse.results.map(result => {
         return {
             address_line: result.Address.AddressLine,

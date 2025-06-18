@@ -372,6 +372,12 @@ describe('mapAddresses', () => {
     expect(BoomiService.mapAddresses(input)).toStrictEqual([]);
   });
 
+    it('will handle empty results when null', () => {
+    const input: IBoomiAddressResponse | undefined = undefined;
+
+    expect(BoomiService.mapAddresses(input)).toStrictEqual([]);
+  });
+
   it('will handle empty results', () => {
     const input: IBoomiAddressResponse = {
       results: []
