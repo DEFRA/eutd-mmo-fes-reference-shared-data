@@ -161,6 +161,7 @@ export function toDefraCcLanding(product: Product | undefined, transportation: T
             cfr: landing.cfr
          },
          exportWeight: landing.weight,
+         gearType: landing.gearType,
          isDirectLanding: (transportation?.vehicle === TRANSPORT_VEHICLE_DIRECT),
          vesselAdministration: licence ? licence.da : undefined,
          dataEverExpected: landing.dataEverExpected,

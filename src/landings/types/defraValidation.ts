@@ -171,6 +171,7 @@ export interface CertificateLanding {
     cnCodeDesc?: string;
     vessel: CertificateLandingVessel;
     exportWeight: number;
+    gearType?: string;
     isDirectLanding: boolean;
     isValidationFailed?: boolean;
     isSpeciesMisMatch?: boolean;

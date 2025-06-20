@@ -73,6 +73,7 @@ export interface Catch {
   date?: string;
   faoArea?: string;
   weight?: number;
+  gearType?: string;
   _status?: LandingStatus;
   numberOfSubmissions?: number;
   vesselOverriddenByAdmin?: boolean;

@@ -18,6 +18,8 @@ export interface ICcQueryResult {
   weightOnAllCerts: number;
   weightOnAllCertsBefore: number;
   weightOnAllCertsAfter: number;
+  //gear type will load based on gear category
+  gearType?: string;
   // Is there a landing?
   isLandingExists: boolean;
   hasSalesNote?: boolean;

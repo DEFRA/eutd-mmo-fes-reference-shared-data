@@ -1781,6 +1781,7 @@ describe('Mapping data for DEFRA Central Reporting HUB', () => {
             "date": "2020-06-02",
             "faoArea": "FAO27",
             "weight": 200,
+            "gearType": "Type 1",
             "flag": "GBR",
             "cfr": "GBRC17737"
           }
@@ -1814,6 +1815,7 @@ describe('Mapping data for DEFRA Central Reporting HUB', () => {
           cfr: "GBRC17737"
         },
         exportWeight: 200,
+        gearType: "Type 1",
         isDirectLanding: false,
         vesselAdministration: "England"
       }]);
@@ -1914,6 +1916,7 @@ describe('Mapping data for DEFRA Central Reporting HUB', () => {
             "date": "2020-06-02",
             "faoArea": "FAO27",
             "weight": 200,
+            "gearType": "Type 1",
             "flag": "GBR",
             "cfr": "GBRC17737"
           },
@@ -1924,6 +1927,7 @@ describe('Mapping data for DEFRA Central Reporting HUB', () => {
             "date": "2020-05-31",
             "faoArea": "FAO27",
             "weight": 300,
+            "gearType": "",
             "flag": "GBR",
             "cfr": "GBRC17737"
           }
@@ -1958,6 +1962,7 @@ describe('Mapping data for DEFRA Central Reporting HUB', () => {
             cfr: "GBRC17737"
           },
           exportWeight: 200,
+          gearType: "Type 1",
           isDirectLanding: false,
           vesselAdministration: "England"
         },
@@ -1985,6 +1990,7 @@ describe('Mapping data for DEFRA Central Reporting HUB', () => {
             cfr: "GBRC17737"
           },
           exportWeight: 300,
+          gearType: "",
           isDirectLanding: false,
           vesselAdministration: "England"
         }
