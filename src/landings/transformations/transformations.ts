@@ -197,6 +197,7 @@ export function* unwindCatchCerts(catchCerts) {
           date: moment(caughtBy.date).format('YYYY-MM-DD'),
           startDate: caughtBy.startDate,
           weight: caughtBy.weight,
+          gearType: caughtBy.gearType,
           extended: {
             exporterContactId: nullishCoalescing(exportData.exporterDetails, 'contactId'),
             exporterAccountId: nullishCoalescing(exportData.exporterDetails, 'accountId'),
@@ -258,7 +259,7 @@ export function* mapCatchCerts(unwoundCatchCerts, licenceLookup) {
   /*
    * Clean up the unwould catch certificates
    */
-  for (const { documentNumber, createdAt, status, speciesCode, factor, pln, startDate, date, weight, extended } of unwoundCatchCerts) {
+  for (const { documentNumber, createdAt, status, speciesCode, factor, pln, startDate, date, weight, extended, gearType } of unwoundCatchCerts) {
     const licence = licenceLookup(pln, date);
     const rssNumber = licence ? licence.rssNumber : undefined
     yield {
@@ -271,6 +272,7 @@ export function* mapCatchCerts(unwoundCatchCerts, licenceLookup) {
       species: speciesCode,
       factor: factor,
       weight,
+      gearType,
       da: licence ? licence.da : 'England',
       extended: {
         ...extended,

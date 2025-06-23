@@ -45,6 +45,7 @@ export interface IBaseLanding {
     licenceHolder: string;
     source?: string;
     weight: number;
+    gearType?: string;
     numberOfTotalSubmissions: number;
     validation: IDynamicsLandingValidation;
     risking?: IDynamicsRisk;

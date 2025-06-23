@@ -264,6 +264,7 @@ export function* ccQuery(
             r.weightOnAllCertsBefore = allCertsWeightBySpeciesSoFar[item.species]
             allCertsWeightBySpeciesSoFar[item.species] += r.weightOnCert
             r.weightOnAllCertsAfter = allCertsWeightBySpeciesSoFar[item.species]
+            r.gearType = item.gearType
 
             r.isLandingExists = isLandingExists;
             r.isExceeding14DayLimit = false;
