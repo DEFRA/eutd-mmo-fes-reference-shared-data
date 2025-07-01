@@ -239,13 +239,14 @@ export function toTransportations(transportation): CatchCertificateTransport {
    if (transportation === undefined)
       return undefined;
 
-   const transportDocuments: CatchCertificateTransportDocument[] = Array.isArray(transportation.transportDocuments) && transportation.transportDocuments.length > 0 ? transportation.transportDocuments : [];
+   const transportDocuments: CatchCertificateTransportDocument[] = Array.isArray(transportation.transportDocuments) && transportation.transportDocuments.length > 0 ? transportation.transportDocuments : undefined;
 
    switch (transportation.vehicle) {
       case TRANSPORT_VEHICLE_TRUCK:
          return {
             id: transportation.id,
             modeofTransport: transportation.vehicle,
+            hasRoadTransportDocument: transportation.cmr,
             freightBillNumber: transportation.freightBillNumber,
             nationality: transportation.nationalityOfVehicle,
             registration: transportation.registrationNumber,
@@ -283,15 +284,7 @@ export function toTransportations(transportation): CatchCertificateTransport {
             transportDocuments,
          }
       default:
-         return {
-            id: transportation.id,
-            modeofTransport: transportation.vehicle,
-            freightBillNumber: transportation.freightBillNumber,
-            exportLocation: transportation.departurePlace,
-            nationality: transportation.nationalityOfVehicle,
-            registration: transportation.registrationNumber,
-            transportDocuments,
-         }
+         return null;
    }
 }
 

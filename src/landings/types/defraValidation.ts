@@ -120,13 +120,14 @@ interface CatchCertificateModeOfTransport {
     id: string;
     modeofTransport: string;
     exportLocation: string;
-    freightBillNumber: string;
-    transportDocuments: CatchCertificateTransportDocument[];
+    freightBillNumber?: string;
+    transportDocuments?: CatchCertificateTransportDocument[];
 }
 
 export interface CatchCertificateTruck extends CatchCertificateModeOfTransport {
-    nationality: string;
-    registration: string;
+    hasRoadTransportDocument: boolean;
+    nationality?: string;
+    registration?: string;
 }
 
 export interface CatchCertificateTrain extends CatchCertificateModeOfTransport {

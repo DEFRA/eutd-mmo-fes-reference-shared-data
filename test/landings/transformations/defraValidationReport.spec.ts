@@ -308,15 +308,7 @@ describe('Mapping data for DEFRA Central Reporting HUB', () => {
             name: "Invoice",
             reference: "INV001"
           }]
-        }, {
-          id: 0,
-          freightBillNumber: '0',
-          modeofTransport: 'unknown',
-          exportLocation: "Hull",
-          nationality: undefined,
-          registration: undefined,
-          transportDocuments: []
-        }],
+        }, null],
         _correlationId: 'some-uuid-correlation-id',
         requestedByAdmin: false
       });
@@ -631,7 +623,7 @@ describe('Mapping data for DEFRA Central Reporting HUB', () => {
       expect(res.conservationReference).toBeUndefined();
     });
 
-    it('can map a whole CC document with a transport', () => {
+    it('can map a whole CC document with landings', () => {
       const res = toCcDefraReport('GBR-2020-CC-1BC924FCF', correlationId, DocumentStatuses.Draft, requestByAdmin, mockGetVesselIdx, {
         "createdAt": new Date("2020-06-24T10:39:32.000Z"),
         "__t": "catchCert",
@@ -856,6 +848,99 @@ describe('Mapping data for DEFRA Central Reporting HUB', () => {
           dateDataReceived: undefined
         }
       ]);
+    });
+
+    it('can map a whole CC document with CMR in transportations', () => {
+      const res = toCcDefraReport('GBR-2020-CC-1BC924FCF', correlationId, DocumentStatuses.Draft, requestByAdmin, mockGetVesselIdx, {
+        "createdAt": new Date("2020-06-24T10:39:32.000Z"),
+        "__t": "catchCert",
+        "createdBy": "ABCD-EFGH-IJKL-MNOP-QRST-UVWX-YZ12",
+        "status": "COMPLETE",
+        "documentNumber": "GBR-2020-CC-1BC924FCF",
+        "clonedFrom": "GBR-2023-CC-C3A82642B",
+        "landingsCloned": false,
+        "parentDocumentVoid": false,
+        "audit": [
+          {
+            "eventType": "INVESTIGATED",
+            "triggeredBy": "Chris Waugh",
+            "timestamp": {
+              "$date": "2020-06-24T10:40:18.780Z"
+            },
+            "data": {
+              "investigationStatus": "UNDER_INVESTIGATION"
+            }
+          },
+          {
+            "eventType": "INVESTIGATED",
+            "triggeredBy": "Chris Waugh",
+            "timestamp": {
+              "$date": "2020-06-24T10:40:23.439Z"
+            },
+            "data": {
+              "investigationStatus": "CLOSED_NFA"
+            }
+          }
+        ],
+        "userReference": "MY REF",
+        "exportData": {
+          "products": [
+            {
+              "species": "European lobster (LBE)",
+              "speciesId": "4e5fff23-184c-4a46-beef-e93ccd040392",
+              "speciesCode": "LBE",
+              "scientificName": "some scientific name",
+              "commodityCode": "1234",
+              "commodityCodeDescription": "some commodity code description",
+              "state": {
+                "code": "ALI",
+                "name": "Alive"
+              },
+              "presentation": {
+                "code": "WHL",
+                "name": "Whole"
+              },
+              "factor": 1,
+              "caughtBy": [
+                {
+                  "vessel": "WIRON 5",
+                  "pln": "H1100",
+                  "id": "5a259dc5-b05c-44fe-8d3f-7ee8cc99bfca",
+                  "date": "2020-06-24",
+                  "faoArea": "FAO27",
+                  "flag": "GBR",
+                  "cfr": "GBRC17737",
+                  "weight": 100,
+                  "dataEverExpected": true,
+                  "landingDataExpectedDate": "2023-10-26",
+                  "landingDataEndDate": "2023-10-27",
+                }
+              ]
+            }
+          ],
+          "transportations": [{
+            "id": 0,
+            "vehicle": "truck",
+            "cmr": true
+          }],
+        },
+        "createdByEmail": "foo@foo.com",
+        "documentUri": "_44fd226f-598f-4615-930f-716b2762fea4.pdf",
+        "investigation": {
+          "investigator": "Chris Waugh",
+          "status": "CLOSED_NFA"
+        },
+        "numberOfFailedAttempts": 5
+      });
+
+      const expected = {
+        id: 0,
+        modeofTransport: 'truck',
+        hasRoadTransportDocument: true
+      };
+      expect(res.transportation).toBeUndefined();
+      expect(res.transportations).toHaveLength(1);
+      expect(res.transportations?.[0]).toEqual(expected);
     });
 
     it('can map a whole CC document without _dynamicUser', () => {
@@ -1098,15 +1183,7 @@ describe('Mapping data for DEFRA Central Reporting HUB', () => {
             name: "Invoice",
             reference: "INV001"
           }]
-        }, {
-          id: 0,
-          freightBillNumber: '0',
-          modeofTransport: 'unknown',
-          exportLocation: "Hull",
-          nationality: undefined,
-          registration: undefined,
-          transportDocuments: []
-        }],
+        }, null],
         _correlationId: 'some-uuid-correlation-id',
         requestedByAdmin: false
       });
