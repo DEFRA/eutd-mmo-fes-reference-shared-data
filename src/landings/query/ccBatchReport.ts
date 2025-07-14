@@ -2,6 +2,7 @@ import moment from 'moment'
 import logger from '../../logger'
 import { ICcQueryResult, ICcBatchValidationReport } from '../types/query'
 import * as Transformations from '../transformations/transformations'
+import { ILandingAggregatedItemBreakdown } from '../types';
 
 export const TRANSPORT_VEHICLE_DIRECT = 'directLanding';
 
@@ -40,35 +41,7 @@ export const ccBatchReport = (
 
       pickRfromQ(q, r);
 
-      if (q.landingTotalBreakdown) {
-        r.landingBreakdowns = '';
-        q.landingTotalBreakdown
-          .map(landingAggregatedItemBreakdown => provideLandingBreakdown(q.species, landingAggregatedItemBreakdown))
-          .forEach((landingBreakdownDetail, index, arr) => r.landingBreakdowns += landingBreakdownDetail + `${(index === arr.length - 1) ? '' : '\n'}`);
-
-        const landedDecLandings = q.landingTotalBreakdown.filter(landingAggregatedItemBreakdown => !landingAggregatedItemBreakdown.isEstimate);
-        if (landedDecLandings.length > 0) {
-          const aggregatedLandedDecWeight = _.sumBy(landedDecLandings, landedDecLanding => landedDecLanding.weight);
-          r.aggregatedLandedDecWeight = (aggregatedLandedDecWeight > 0) ? aggregatedLandedDecWeight : undefined;
-
-          const aggregatedLiveWeight = _.sumBy(q.landingTotalBreakdown, landedDecLanding => landedDecLanding.liveWeight);
-          r.aggregatedLiveWeight = (aggregatedLiveWeight > 0) ? aggregatedLiveWeight : undefined;
-        }
-
-        const estimatedLandings = q.landingTotalBreakdown.filter(landingAggregatedItemBreakdown => landingAggregatedItemBreakdown.isEstimate);
-        if (estimatedLandings.length > 0) {
-          r.aggregatedEstimateWeight = _.sumBy(estimatedLandings, estimatedLanding => estimatedLanding.weight);
-
-          r.aggregatedEstimateWeightPlusTolerance = _.sumBy(estimatedLandings
-            .map(landingAggregatedItemBreakdown => landingAggregatedItemBreakdown.liveWeight), liveWeight => liveWeight + liveWeight * 0.1);
-
-          // Landed Weight Exceed By: Live weight from Exporter minus “Estimate Weight + Tolerance” depending upon source of validation data.
-          r.exportedWeightExceedingEstimateLandedWeight = _undefinedIfNoLandings(
-            estimatedLandings.length,
-            q.weightOnAllCerts > r.aggregatedEstimateWeightPlusTolerance ? q.weightOnAllCerts - r.aggregatedEstimateWeightPlusTolerance : undefined
-          );
-        }
-      }
+      landBreakDown(q, r);
 
       /*
        * https://eaflood.atlassian.net/browse/FI0-41
@@ -151,7 +124,43 @@ const provideLandingBreakdown = (species, landingAggregatedItemBreakdown) => {
     `${(landingAggregatedItemBreakdown.isEstimate) ? estweightPlusTolerance : ''}` +
     `source of validation: ${landingAggregatedItemBreakdown.source}`
 }
+const landBreakDown = (q: ICcQueryResult, r: ICcBatchValidationReport) => {
+  if (q.landingTotalBreakdown) {
+    r.landingBreakdowns = '';
+    q.landingTotalBreakdown
+      .map(landingAggregatedItemBreakdown => provideLandingBreakdown(q.species, landingAggregatedItemBreakdown))
+      .forEach((landingBreakdownDetail, index, arr) => r.landingBreakdowns += landingBreakdownDetail + `${(index === arr.length - 1) ? '' : '\n'}`);
 
+    const landedDecLandings = q.landingTotalBreakdown.filter(landingAggregatedItemBreakdown => !landingAggregatedItemBreakdown.isEstimate);
+    provideLandingLength(landedDecLandings, r,q);
+
+    const estimatedLandings = q.landingTotalBreakdown.filter(landingAggregatedItemBreakdown => landingAggregatedItemBreakdown.isEstimate);
+    provideEstimatedLandings(estimatedLandings, r, q);
+  }
+}
+const provideEstimatedLandings = (estimatedLandings: ILandingAggregatedItemBreakdown[],r:ICcBatchValidationReport,q:ICcQueryResult) => {
+  if (estimatedLandings.length > 0) {
+    r.aggregatedEstimateWeight = _.sumBy(estimatedLandings, estimatedLanding => estimatedLanding.weight);
+
+    r.aggregatedEstimateWeightPlusTolerance = _.sumBy(estimatedLandings
+      .map(landingAggregatedItemBreakdown => landingAggregatedItemBreakdown.liveWeight), liveWeight => liveWeight + liveWeight * 0.1);
+
+    // Landed Weight Exceed By: Live weight from Exporter minus “Estimate Weight + Tolerance” depending upon source of validation data.
+    r.exportedWeightExceedingEstimateLandedWeight = _undefinedIfNoLandings(
+      estimatedLandings.length,
+      q.weightOnAllCerts > r.aggregatedEstimateWeightPlusTolerance ? q.weightOnAllCerts - r.aggregatedEstimateWeightPlusTolerance : undefined
+    );
+  }
+}
+const provideLandingLength = (landedDecLandings:ILandingAggregatedItemBreakdown[],r: ICcBatchValidationReport,q: ICcQueryResult) => {
+  if (landedDecLandings.length > 0) {
+    const aggregatedLandedDecWeight = _.sumBy(landedDecLandings, landedDecLanding => landedDecLanding.weight);
+    r.aggregatedLandedDecWeight = (aggregatedLandedDecWeight > 0) ? aggregatedLandedDecWeight : undefined;
+
+    const aggregatedLiveWeight = _.sumBy(q.landingTotalBreakdown, landedDecLanding => landedDecLanding.liveWeight);
+    r.aggregatedLiveWeight = (aggregatedLiveWeight > 0) ? aggregatedLiveWeight : undefined;
+  }
+}
 const pickRfromQ = (q: ICcQueryResult, r: ICcBatchValidationReport) => {
   r.documentNumber = q.documentNumber
   r.documentType = 'CC'
