@@ -5,10 +5,11 @@ trigger:
     include:
       # in order as per GitFlow Branching strategy
       - 'main'
-      - 'hotfix/FI0-*'
+      - 'hotfix/*'
       - 'release/*'
       - 'develop'
-      - 'feature/FI0-*'
+      - 'feature/*'
+      - 'epic/*'
 
 resources:
   repositories:
