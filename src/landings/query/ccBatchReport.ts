@@ -33,80 +33,19 @@ export const ccBatchReport = (
   return Transformations.imap(
     Transformations.ifilter(rawValidationCertificates, filter), (q: ICcQueryResult) => {
 
-      const createUrl = (rawDataType) => {
-        return `{BASE_URL}/reference/api/v1/extendedData/${rawDataType}?dateLanded=${q.dateLanded}&rssNumber=${q.rssNumber}`
-      }
+     
 
       const r = <ICcBatchValidationReport>{}
 
       pickRfromQ(q, r);
 
       landBreakDown(q, r);
-
-      /*
-       * https://eaflood.atlassian.net/browse/FI0-41
-       */
-
-      const unavailabilityDuration = q.isLandingExists ? q.durationBetweenCertCreationAndFirstLandingRetrieved : q.durationSinceCertCreation
-
-      if (moment.duration(unavailabilityDuration) < moment.duration())
-        r.FI0_41_unavailabilityDuration = '0.0.0.0'
-      else if (moment.duration(unavailabilityDuration) > moment.duration(40, 'days'))
-        r.FI0_41_unavailabilityDuration = '40 days+'
-      else
-        r.FI0_41_unavailabilityDuration = fmtDuration(moment.duration(unavailabilityDuration))
-
-
-      /*
-       * https://eaflood.atlassian.net/browse/FI0-47
-       */
-
-
-
-
-
-      let failures = 0;
-
-      if (q.isLandingExists) {
-        failures = _getSpeciesFailures(failures, _checkSpecies);
-      } else {
-        failures = _getSpeciesFailures(failures, _ => _);
-      }
-
-      r.FI0_136_numberOfFailedValidations = failures;
-      r.rawLandingsUrl = createUrl('rawLandings');
-      r.salesNotesUrl = createUrl('salesNotes');
+      
+      provideBatchDetails(q,r);
+     
 
       return r
 
-      function _getSpeciesFailures(speciesFailures, checkSpecies) {
-        if (r.FI0_47_unavailabilityExceeds14Days === 'Fail') {
-          speciesFailures++;
-          speciesFailures = checkSpecies(speciesFailures, _checkWeightsForOveruse);
-        } else {
-          speciesFailures = checkSpecies(speciesFailures, _checkWeightsForOveruse);
-        }
-
-        return speciesFailures;
-      }
-
-      function _checkSpecies(speciesFailures, checkWeight) {
-        if (r.FI0_289_speciesMismatch === 'Fail') {
-          speciesFailures++;
-        } else {
-          speciesFailures = checkWeight(speciesFailures);
-        }
-
-        return speciesFailures;
-      }
-
-      function _checkWeightsForOveruse(failures) {
-        if (q.isOverusedAllCerts) {
-          failures++;
-        }
-
-        return failures;
-      }
 
 
     })
@@ -123,6 +62,65 @@ const provideLandingBreakdown = (species, landingAggregatedItemBreakdown) => {
     `${(landingAggregatedItemBreakdown.isEstimate) ? 'estimate live weight' : 'live weight'}: ${landingAggregatedItemBreakdown.liveWeight}, ` +
     `${(landingAggregatedItemBreakdown.isEstimate) ? estweightPlusTolerance : ''}` +
     `source of validation: ${landingAggregatedItemBreakdown.source}`
+}
+const provideBatchDetails=(q:ICcQueryResult,r:ICcBatchValidationReport)=>{
+   /*
+       * https://eaflood.atlassian.net/browse/FI0-41
+       */
+   const createUrl = (rawDataType) => {
+    return `{BASE_URL}/reference/api/v1/extendedData/${rawDataType}?dateLanded=${q.dateLanded}&rssNumber=${q.rssNumber}`
+  }
+   const unavailabilityDuration = q.isLandingExists ? q.durationBetweenCertCreationAndFirstLandingRetrieved : q.durationSinceCertCreation
+
+   if (moment.duration(unavailabilityDuration) < moment.duration())
+     r.FI0_41_unavailabilityDuration = '0.0.0.0'
+   else if (moment.duration(unavailabilityDuration) > moment.duration(40, 'days'))
+     r.FI0_41_unavailabilityDuration = '40 days+'
+   else
+     r.FI0_41_unavailabilityDuration = fmtDuration(moment.duration(unavailabilityDuration))
+   /*
+    * https://eaflood.atlassian.net/browse/FI0-47
+    */
+    let failures = 0;
+
+   if (q.isLandingExists) {
+     failures = _getSpeciesFailures(failures, _checkSpecies);
+   } else {
+     failures = _getSpeciesFailures(failures, _ => _);
+   }
+
+   r.FI0_136_numberOfFailedValidations = failures;
+   r.rawLandingsUrl = createUrl('rawLandings');
+   r.salesNotesUrl = createUrl('salesNotes');
+
+   function _getSpeciesFailures(speciesFailures, checkSpecies) {
+    if (r.FI0_47_unavailabilityExceeds14Days === 'Fail') {
+      speciesFailures++;
+      speciesFailures = checkSpecies(speciesFailures, _checkWeightsForOveruse);
+    } else {
+      speciesFailures = checkSpecies(speciesFailures, _checkWeightsForOveruse);
+    }
+
+    return speciesFailures;
+  }
+
+  function _checkSpecies(speciesFailures, checkWeight) {
+    if (r.FI0_289_speciesMismatch === 'Fail') {
+      speciesFailures++;
+    } else {
+      speciesFailures = checkWeight(speciesFailures);
+    }
+
+    return speciesFailures;
+  }
+
+  function _checkWeightsForOveruse(failures) {
+    if (q.isOverusedAllCerts) {
+      failures++;
+    }
+
+    return failures;
+  }
 }
 const landBreakDown = (q: ICcQueryResult, r: ICcBatchValidationReport) => {
   if (q.landingTotalBreakdown) {
