@@ -74,6 +74,8 @@ export interface Catch {
   faoArea?: string;
   weight?: number;
   gearType?: string;
+  highSeasArea?: string;
+  rfmo?: string;
   _status?: LandingStatus;
   numberOfSubmissions?: number;
   vesselOverriddenByAdmin?: boolean;

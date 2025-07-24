@@ -46,6 +46,8 @@ export interface IBaseLanding {
     source?: string;
     weight: number;
     gearType?: string;
+    highSeasArea?: string;
+    rfmo?: string;
     numberOfTotalSubmissions: number;
     validation: IDynamicsLandingValidation;
     risking?: IDynamicsRisk;

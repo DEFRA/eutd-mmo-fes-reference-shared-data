@@ -2218,7 +2218,7 @@ describe('on groupCatchCertsByLanding', () => {
 describe('mapCatchCerts', () => {
   it('will surface the factor applied to the weight', () => {
     const unwoundCertificates = [
-      { documentNumber: 'CC1', status: 'COMPLETE', createdAt: '2019-07-10T08:26:06.939Z', speciesCode: 'LBE', factor: 1, pln: 'WA1', startDate: '2019-07-10', date: '2019-07-10', weight: 100, gearType: 'Type 1', extended: { vesselOverriddenByAdmin: undefined,speciesOverriddenByAdmin:false } }
+      { documentNumber: 'CC1', status: 'COMPLETE', createdAt: '2019-07-10T08:26:06.939Z', speciesCode: 'LBE', factor: 1, pln: 'WA1', startDate: '2019-07-10', date: '2019-07-10', weight: 100, gearType: 'Type 1', extended: { vesselOverriddenByAdmin: undefined,speciesOverriddenByAdmin:false, highSeasArea: "yes", rfmo: "NAFO" } }
     ];
 
     const result = Array.from(Transformations.mapCatchCerts(unwoundCertificates, () => true));
@@ -2236,6 +2236,8 @@ describe('mapCatchCerts', () => {
       weight: 100,
       gearType: 'Type 1',
       extended: {
+        highSeasArea: "yes",
+        rfmo: "NAFO",
         vesselOverriddenByAdmin: undefined,
         speciesOverriddenByAdmin:false,
         flag: undefined,
@@ -2250,7 +2252,7 @@ describe('mapCatchCerts', () => {
 
   it('will surface the licence details for the vessel', () => {
     const unwoundCertificates = [
-      { documentNumber: 'CC1', status: 'COMPLETE', createdAt: '2019-07-10T08:26:06.939Z', speciesCode: 'LBE', factor: 1, pln: 'WA1', startDate: '2019-07-10', date: '2019-07-10', weight: 100, gearType: 'Type 1', extended: { vesselOverriddenByAdmin: undefined,  speciesOverriddenByAdmin:false } }
+      { documentNumber: 'CC1', status: 'COMPLETE', createdAt: '2019-07-10T08:26:06.939Z', speciesCode: 'LBE', factor: 1, pln: 'WA1', startDate: '2019-07-10', date: '2019-07-10', weight: 100, gearType: 'Type 1', extended: { vesselOverriddenByAdmin: undefined,  speciesOverriddenByAdmin:false, highSeasArea: "yes", rfmo: "NAFO" } }
     ];
 
     const result = Array.from(Transformations.mapCatchCerts(unwoundCertificates, () => ({
@@ -2277,6 +2279,8 @@ describe('mapCatchCerts', () => {
       weight: 100,
       gearType: 'Type 1',
       extended: {
+        highSeasArea: "yes",
+        rfmo: "NAFO",
         vesselOverriddenByAdmin: undefined,
         speciesOverriddenByAdmin:false,
         flag: 'GBR',
@@ -2291,7 +2295,7 @@ describe('mapCatchCerts', () => {
 
   it('will surface the admin licence holder', () => {
     const unwoundCertificates = [
-      { documentNumber: 'CC1', status: 'COMPLETE', createdAt: '2019-07-10T08:26:06.939Z', speciesCode: 'LBE', factor: 1, pln: 'WA1', startDate: '2019-07-10', date: '2019-07-10', weight: 100, gearType: 'Type 1', extended: { vesselOverriddenByAdmin: true, speciesOverriddenByAdmin:false, licenceHolder: 'Admin added licence holder' } }
+      { documentNumber: 'CC1', status: 'COMPLETE', createdAt: '2019-07-10T08:26:06.939Z', speciesCode: 'LBE', factor: 1, pln: 'WA1', startDate: '2019-07-10', date: '2019-07-10', weight: 100, gearType: 'Type 1', extended: { vesselOverriddenByAdmin: true, speciesOverriddenByAdmin:false, licenceHolder: 'Admin added licence holder', highSeasArea: "yes", rfmo: "NAFO" } }
     ];
 
     const result = Array.from(Transformations.mapCatchCerts(unwoundCertificates, () => ({
@@ -2318,6 +2322,8 @@ describe('mapCatchCerts', () => {
       weight: 100,
       gearType: 'Type 1',
       extended: {
+        highSeasArea: "yes",
+        rfmo: "NAFO",
         vesselOverriddenByAdmin: true,
         speciesOverriddenByAdmin:false,
         flag: 'GBR',

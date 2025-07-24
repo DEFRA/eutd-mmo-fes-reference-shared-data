@@ -1859,6 +1859,8 @@ describe('Mapping data for DEFRA Central Reporting HUB', () => {
             "faoArea": "FAO27",
             "weight": 200,
             "gearType": "Type 1",
+            "highSeasArea": "yes",
+            "rfmo": "NAFO",
             "flag": "GBR",
             "cfr": "GBRC17737"
           }
@@ -1994,6 +1996,8 @@ describe('Mapping data for DEFRA Central Reporting HUB', () => {
             "faoArea": "FAO27",
             "weight": 200,
             "gearType": "Type 1",
+            "highSeasArea": "yes",
+            "rfmo": "NAFO",
             "flag": "GBR",
             "cfr": "GBRC17737"
           },
@@ -2005,6 +2009,8 @@ describe('Mapping data for DEFRA Central Reporting HUB', () => {
             "faoArea": "FAO27",
             "weight": 300,
             "gearType": "",
+            "highSeasArea": "",
+            "rfmo": "",
             "flag": "GBR",
             "cfr": "GBRC17737"
           }

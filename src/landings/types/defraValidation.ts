@@ -173,6 +173,8 @@ export interface CertificateLanding {
     vessel: CertificateLandingVessel;
     exportWeight: number;
     gearType?: string;
+    highSeasArea?: string;
+    rfmo?: string;
     isDirectLanding: boolean;
     isValidationFailed?: boolean;
     isSpeciesMisMatch?: boolean;
