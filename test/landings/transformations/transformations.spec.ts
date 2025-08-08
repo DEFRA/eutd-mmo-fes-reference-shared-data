@@ -2218,7 +2218,7 @@ describe('on groupCatchCertsByLanding', () => {
 describe('mapCatchCerts', () => {
   it('will surface the factor applied to the weight', () => {
     const unwoundCertificates = [
-      { documentNumber: 'CC1', status: 'COMPLETE', createdAt: '2019-07-10T08:26:06.939Z', speciesCode: 'LBE', factor: 1, pln: 'WA1', startDate: '2019-07-10', date: '2019-07-10', weight: 100, gearType: 'Type 1', extended: { vesselOverriddenByAdmin: undefined,speciesOverriddenByAdmin:false, highSeasArea: "yes", rfmo: "NAFO" } }
+      { documentNumber: 'CC1', status: 'COMPLETE', createdAt: '2019-07-10T08:26:06.939Z', speciesCode: 'LBE', factor: 1, pln: 'WA1', startDate: '2019-07-10', date: '2019-07-10', weight: 100, gearType: 'Type 1', extended: { vesselOverriddenByAdmin: undefined,speciesOverriddenByAdmin:false, highSeasArea: "yes", rfmo: "NAFO", exclusiveEconomicZones: [{officialCountryName: "Nigeria", isoCodeAlpha2: "NG", isoCodeAlpha3: "NGA", isoNumericCode: "566"}, { officialCountryName: "France", isoCodeAlpha2: "FR", isoCodeAlpha3: "FRA", isoNumericCode: "250"}] } }
     ];
 
     const result = Array.from(Transformations.mapCatchCerts(unwoundCertificates, () => true));
@@ -2238,6 +2238,20 @@ describe('mapCatchCerts', () => {
       extended: {
         highSeasArea: "yes",
         rfmo: "NAFO",
+        exclusiveEconomicZones: [
+          {
+            officialCountryName: "Nigeria", 
+            isoCodeAlpha2: "NG", 
+            isoCodeAlpha3: "NGA", 
+            isoNumericCode: "566"
+          }, 
+          { 
+            officialCountryName: "France",
+            isoCodeAlpha2: "FR",
+            isoCodeAlpha3: "FRA",
+            isoNumericCode: "250"
+          }
+        ], 
         vesselOverriddenByAdmin: undefined,
         speciesOverriddenByAdmin:false,
         flag: undefined,
@@ -2252,7 +2266,7 @@ describe('mapCatchCerts', () => {
 
   it('will surface the licence details for the vessel', () => {
     const unwoundCertificates = [
-      { documentNumber: 'CC1', status: 'COMPLETE', createdAt: '2019-07-10T08:26:06.939Z', speciesCode: 'LBE', factor: 1, pln: 'WA1', startDate: '2019-07-10', date: '2019-07-10', weight: 100, gearType: 'Type 1', extended: { vesselOverriddenByAdmin: undefined,  speciesOverriddenByAdmin:false, highSeasArea: "yes", rfmo: "NAFO" } }
+      { documentNumber: 'CC1', status: 'COMPLETE', createdAt: '2019-07-10T08:26:06.939Z', speciesCode: 'LBE', factor: 1, pln: 'WA1', startDate: '2019-07-10', date: '2019-07-10', weight: 100, gearType: 'Type 1', extended: { vesselOverriddenByAdmin: undefined,  speciesOverriddenByAdmin:false, highSeasArea: "yes", rfmo: "NAFO", exclusiveEconomicZones: [{officialCountryName: "Nigeria", isoCodeAlpha2: "NG", isoCodeAlpha3: "NGA", isoNumericCode: "566"}, { officialCountryName: "France", isoCodeAlpha2: "FR", isoCodeAlpha3: "FRA", isoNumericCode: "250"}] } }
     ];
 
     const result = Array.from(Transformations.mapCatchCerts(unwoundCertificates, () => ({
@@ -2281,6 +2295,9 @@ describe('mapCatchCerts', () => {
       extended: {
         highSeasArea: "yes",
         rfmo: "NAFO",
+        exclusiveEconomicZones: [
+          {officialCountryName: "Nigeria", isoCodeAlpha2: "NG", isoCodeAlpha3: "NGA", isoNumericCode: "566"}, { officialCountryName: "France", isoCodeAlpha2: "FR", isoCodeAlpha3: "FRA", isoNumericCode: "250"}
+        ],
         vesselOverriddenByAdmin: undefined,
         speciesOverriddenByAdmin:false,
         flag: 'GBR',
@@ -2295,7 +2312,7 @@ describe('mapCatchCerts', () => {
 
   it('will surface the admin licence holder', () => {
     const unwoundCertificates = [
-      { documentNumber: 'CC1', status: 'COMPLETE', createdAt: '2019-07-10T08:26:06.939Z', speciesCode: 'LBE', factor: 1, pln: 'WA1', startDate: '2019-07-10', date: '2019-07-10', weight: 100, gearType: 'Type 1', extended: { vesselOverriddenByAdmin: true, speciesOverriddenByAdmin:false, licenceHolder: 'Admin added licence holder', highSeasArea: "yes", rfmo: "NAFO" } }
+      { documentNumber: 'CC1', status: 'COMPLETE', createdAt: '2019-07-10T08:26:06.939Z', speciesCode: 'LBE', factor: 1, pln: 'WA1', startDate: '2019-07-10', date: '2019-07-10', weight: 100, gearType: 'Type 1', extended: { vesselOverriddenByAdmin: true, speciesOverriddenByAdmin:false, licenceHolder: 'Admin added licence holder', highSeasArea: "yes", rfmo: "NAFO", exclusiveEconomicZones: [{officialCountryName: "Nigeria", isoCodeAlpha2: "NG", isoCodeAlpha3: "NGA", isoNumericCode: "566"}, { officialCountryName: "France", isoCodeAlpha2: "FR", isoCodeAlpha3: "FRA", isoNumericCode: "250"}] } }
     ];
 
     const result = Array.from(Transformations.mapCatchCerts(unwoundCertificates, () => ({
@@ -2324,8 +2341,9 @@ describe('mapCatchCerts', () => {
       extended: {
         highSeasArea: "yes",
         rfmo: "NAFO",
+        exclusiveEconomicZones: [{officialCountryName: "Nigeria", isoCodeAlpha2: "NG", isoCodeAlpha3: "NGA", isoNumericCode: "566"}, { officialCountryName: "France", isoCodeAlpha2: "FR", isoCodeAlpha3: "FRA", isoNumericCode: "250"}],
         vesselOverriddenByAdmin: true,
-        speciesOverriddenByAdmin:false,
+        speciesOverriddenByAdmin: false,
         flag: 'GBR',
         homePort: 'FLEETWOOD',
         imoNumber: null,

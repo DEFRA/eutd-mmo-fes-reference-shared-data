@@ -212,6 +212,7 @@ export function* unwindCatchCerts(catchCerts) {
             flag: caughtBy.flag,
             cfr: caughtBy.cfr,
             highSeasArea: caughtBy.highSeasArea,
+            exclusiveEconomicZones: caughtBy.exclusiveEconomicZones,
             rfmo: caughtBy.rfmo,
             presentation: nullishCoalescing(product.presentation, 'code'),
             presentationName: nullishCoalescing(product.presentation, 'name'),
@@ -261,7 +262,7 @@ export function* mapCatchCerts(unwoundCatchCerts, licenceLookup) {
   /*
    * Clean up the unwould catch certificates
    */
-  for (const { documentNumber, createdAt, status, speciesCode, factor, pln, startDate, date, weight, extended, gearType} of unwoundCatchCerts) {
+  for (const { documentNumber, createdAt, status, speciesCode, factor, pln, startDate, date, weight, extended, gearType } of unwoundCatchCerts) {
     const licence = licenceLookup(pln, date);
     const rssNumber = licence ? licence.rssNumber : undefined
     yield {

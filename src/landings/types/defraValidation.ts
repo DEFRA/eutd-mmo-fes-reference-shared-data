@@ -175,6 +175,7 @@ export interface CertificateLanding {
     gearType?: string;
     highSeasArea?: string;
     rfmo?: string;
+    exclusiveEconomicZones?: ICountry[];
     isDirectLanding: boolean;
     isValidationFailed?: boolean;
     isSpeciesMisMatch?: boolean;

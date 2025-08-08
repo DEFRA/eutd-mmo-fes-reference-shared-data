@@ -2781,7 +2781,15 @@ describe("Mapping toDefraCcLandingStatus", () => {
           status: InvestigationStatus.Open
         },
         transportationVehicle: 'directLanding',
-        licenceHolder: 'Mr Bob'
+        licenceHolder: 'Mr Bob',
+        exclusiveEconomicZones: [
+          {
+            officialCountryName: "United Kingdom",
+            isoCodeAlpha2: "GB", 
+            isoCodeAlpha3: "GBR",
+            isoNumericCode: "826"
+          }
+        ]
       }
     }
 
@@ -2849,7 +2857,15 @@ describe("Mapping toDefraCcLandingStatus", () => {
           status: InvestigationStatus.Open
         },
         transportationVehicle: 'directLanding',
-        licenceHolder: 'Mr Bob'
+        licenceHolder: 'Mr Bob',
+        exclusiveEconomicZones: [
+          {
+            officialCountryName: "United Kingdom",
+            isoCodeAlpha2: "GB", 
+            isoCodeAlpha3: "GBR",
+            isoNumericCode: "826"
+          }
+        ]
       }
     }
 
@@ -2920,7 +2936,15 @@ describe("Mapping toDefraCcLandingStatus", () => {
           status: InvestigationStatus.Open
         },
         transportationVehicle: 'directLanding',
-        licenceHolder: 'Mr Bob'
+        licenceHolder: 'Mr Bob',
+        exclusiveEconomicZones: [
+          {
+            officialCountryName: "United Kingdom",
+            isoCodeAlpha2: "GB", 
+            isoCodeAlpha3: "GBR",
+            isoNumericCode: "826"
+          }
+        ]
       }
     }
 
@@ -2991,7 +3015,15 @@ describe("Mapping toDefraCcLandingStatus", () => {
           status: InvestigationStatus.Open
         },
         transportationVehicle: 'directLanding',
-        licenceHolder: 'Mr Bob'
+        licenceHolder: 'Mr Bob',
+        exclusiveEconomicZones: [
+          {
+            officialCountryName: "United Kingdom",
+            isoCodeAlpha2: "GB", 
+            isoCodeAlpha3: "GBR",
+            isoNumericCode: "826"
+          }
+        ]
       }
     }
 
@@ -3062,7 +3094,15 @@ describe("Mapping toDefraCcLandingStatus", () => {
           status: InvestigationStatus.Open
         },
         transportationVehicle: 'directLanding',
-        licenceHolder: 'Mr Bob'
+        licenceHolder: 'Mr Bob',
+        exclusiveEconomicZones: [
+          {
+            officialCountryName: "United Kingdom",
+            isoCodeAlpha2: "GB", 
+            isoCodeAlpha3: "GBR",
+            isoNumericCode: "826"
+          }
+        ]
       }
     }
 
@@ -3133,7 +3173,15 @@ describe("Mapping toDefraCcLandingStatus", () => {
           status: InvestigationStatus.Open
         },
         transportationVehicle: 'directLanding',
-        licenceHolder: 'Mr Bob'
+        licenceHolder: 'Mr Bob',
+        exclusiveEconomicZones: [
+          {
+            officialCountryName: "United Kingdom",
+            isoCodeAlpha2: "GB", 
+            isoCodeAlpha3: "GBR",
+            isoNumericCode: "826"
+          }
+        ]
       }
     }
 
@@ -3202,7 +3250,15 @@ describe("Mapping toDefraCcLandingStatus", () => {
           investigator: "Investigator Gadget",
           status: InvestigationStatus.Open
         },
-        transportationVehicle: 'directLanding'
+        transportationVehicle: 'directLanding',
+        exclusiveEconomicZones: [
+          {
+            officialCountryName: "United Kingdom",
+            isoCodeAlpha2: "GB", 
+            isoCodeAlpha3: "GBR",
+            isoNumericCode: "826"
+          }
+        ]
       }
     }
 
@@ -3274,7 +3330,15 @@ describe("Mapping toDefraCcLandingStatus", () => {
           status: InvestigationStatus.Open
         },
         transportationVehicle: 'directLanding',
-        licenceHolder: 'Mr Bob'
+        licenceHolder: 'Mr Bob',
+        exclusiveEconomicZones: [
+          {
+            officialCountryName: "United Kingdom",
+            isoCodeAlpha2: "GB", 
+            isoCodeAlpha3: "GBR",
+            isoNumericCode: "826"
+          }
+        ]
       }
     }
 
@@ -3346,7 +3410,15 @@ describe("Mapping toDefraCcLandingStatus", () => {
           status: InvestigationStatus.Open
         },
         transportationVehicle: 'directLanding',
-        licenceHolder: 'Mr Bob'
+        licenceHolder: 'Mr Bob',
+        exclusiveEconomicZones: [
+          {
+            officialCountryName: "United Kingdom",
+            isoCodeAlpha2: "GB", 
+            isoCodeAlpha3: "GBR",
+            isoNumericCode: "826"
+          }
+        ]
       }
     }
 
@@ -3414,7 +3486,15 @@ describe("Mapping toDefraCcLandingStatus", () => {
           licenceHolder: 'Mr Bob',
           dataEverExpected: true,
           landingDataExpectedDate: '2019-07-12',
-          landingDataEndDate: '2019-07-14'
+          landingDataEndDate: '2019-07-14',
+          exclusiveEconomicZones: [
+            {
+              officialCountryName: "United Kingdom",
+              isoCodeAlpha2: "GB", 
+              isoCodeAlpha3: "GBR",
+              isoNumericCode: "826"
+            }
+          ]
         }
       }
 
@@ -3478,7 +3558,15 @@ describe("Mapping toDefraCcLandingStatus", () => {
           },
           transportationVehicle: 'directLanding',
           licenceHolder: 'Mr Bob',
-          dataEverExpected: true
+          dataEverExpected: true,
+          exclusiveEconomicZones: [
+            {
+              officialCountryName: "United Kingdom",
+              isoCodeAlpha2: "GB", 
+              isoCodeAlpha3: "GBR",
+              isoNumericCode: "826"
+            }
+          ]
         }
       }
 
@@ -3543,7 +3631,15 @@ describe("Mapping toDefraCcLandingStatus", () => {
           licenceHolder: 'Mr Bob',
           dataEverExpected: true,
           landingDataExpectedDate: '2019-07-11',
-          landingDataEndDate: '2019-07-12'
+          landingDataEndDate: '2019-07-12',
+          exclusiveEconomicZones: [
+            {
+              officialCountryName: "United Kingdom",
+              isoCodeAlpha2: "GB", 
+              isoCodeAlpha3: "GBR",
+              isoNumericCode: "826"
+            }
+          ]
         }
       }
 
@@ -3608,7 +3704,15 @@ describe("Mapping toDefraCcLandingStatus", () => {
           licenceHolder: 'Mr Bob',
           dataEverExpected: true,
           landingDataExpectedDate: '2019-07-13',
-          landingDataEndDate: '2019-07-18'
+          landingDataEndDate: '2019-07-18',
+          exclusiveEconomicZones: [
+            {
+              officialCountryName: "United Kingdom",
+              isoCodeAlpha2: "GB", 
+              isoCodeAlpha3: "GBR",
+              isoNumericCode: "826"
+            }
+          ]
         }
       }
 
@@ -3673,7 +3777,15 @@ describe("Mapping toDefraCcLandingStatus", () => {
           licenceHolder: 'Mr Bob',
           dataEverExpected: true,
           landingDataExpectedDate: '2019-07-16',
-          landingDataEndDate: '2019-07-18'
+          landingDataEndDate: '2019-07-18',
+          exclusiveEconomicZones: [
+            {
+              officialCountryName: "United Kingdom",
+              isoCodeAlpha2: "GB", 
+              isoCodeAlpha3: "GBR",
+              isoNumericCode: "826"
+            }
+          ]
         }
       }
 
@@ -3736,6 +3848,14 @@ describe("Mapping toDefraCcLandingStatus", () => {
           },
           transportationVehicle: 'directLanding',
           licenceHolder: 'Mr Bob',
+          exclusiveEconomicZones: [
+            {
+              officialCountryName: "United Kingdom",
+              isoCodeAlpha2: "GB", 
+              isoCodeAlpha3: "GBR",
+              isoNumericCode: "826"
+            }
+          ],
           dataEverExpected: true,
           landingDataExpectedDate: moment.utc().add(2, 'day').format('YYYY-MM-DD'),
           landingDataEndDate: moment.utc().add(3, 'day').format('YYYY-MM-DD')
@@ -3802,6 +3922,14 @@ describe("Mapping toDefraCcLandingStatus", () => {
           },
           transportationVehicle: 'directLanding',
           licenceHolder: 'Mr Bob',
+          exclusiveEconomicZones: [
+            {
+              officialCountryName: "United Kingdom",
+              isoCodeAlpha2: "GB", 
+              isoCodeAlpha3: "GBR",
+              isoNumericCode: "826"
+            }
+          ],
           dataEverExpected: true,
           landingDataExpectedDate: '2019-07-15',
           landingDataEndDate: '2019-08-14',
@@ -3869,6 +3997,14 @@ describe("Mapping toDefraCcLandingStatus", () => {
           },
           transportationVehicle: 'directLanding',
           licenceHolder: 'Mr Bob',
+          exclusiveEconomicZones: [
+            {
+              officialCountryName: "United Kingdom",
+              isoCodeAlpha2: "GB", 
+              isoCodeAlpha3: "GBR",
+              isoNumericCode: "826"
+            }
+          ],
           dataEverExpected: true,
           landingDataExpectedDate: moment.utc().format('YYYY-MM-DD'),
           landingDataEndDate: moment.utc().add(1, 'day').format('YYYY-MM-DD')
@@ -3935,6 +4071,14 @@ describe("Mapping toDefraCcLandingStatus", () => {
           },
           transportationVehicle: 'directLanding',
           licenceHolder: 'Mr Bob',
+          exclusiveEconomicZones: [
+            {
+              officialCountryName: "United Kingdom",
+              isoCodeAlpha2: "GB", 
+              isoCodeAlpha3: "GBR",
+              isoNumericCode: "826"
+            }
+          ],
           isLegallyDue: true,
           dataEverExpected: true,
           landingDataExpectedDate: moment.utc().format('YYYY-MM-DD'),
@@ -4001,6 +4145,14 @@ describe("Mapping toDefraCcLandingStatus", () => {
           },
           transportationVehicle: 'directLanding',
           licenceHolder: 'Mr Bob',
+          exclusiveEconomicZones: [
+            {
+              officialCountryName: "United Kingdom",
+              isoCodeAlpha2: "GB", 
+              isoCodeAlpha3: "GBR",
+              isoNumericCode: "826"
+            }
+          ],
           isLegallyDue: true,
           dataEverExpected: true,
           landingDataExpectedDate: '2019-07-13',
@@ -4067,6 +4219,14 @@ describe("Mapping toDefraCcLandingStatus", () => {
           },
           transportationVehicle: 'directLanding',
           licenceHolder: 'Mr Bob',
+          exclusiveEconomicZones: [
+            {
+              officialCountryName: "United Kingdom",
+              isoCodeAlpha2: "GB", 
+              isoCodeAlpha3: "GBR",
+              isoNumericCode: "826"
+            }
+          ],
           dataEverExpected: true,
           landingDataExpectedDate: '2024-07-05',
           landingDataEndDate: moment.utc().add(1, 'day').format('YYYY-MM-DD'),
@@ -4135,6 +4295,14 @@ describe("Mapping toDefraCcLandingStatus", () => {
             },
             transportationVehicle: 'directLanding',
             licenceHolder: 'Mr Bob',
+            exclusiveEconomicZones: [
+              {
+                officialCountryName: "United Kingdom",
+                isoCodeAlpha2: "GB", 
+                isoCodeAlpha3: "GBR",
+                isoNumericCode: "826"
+              }
+            ],
             dataEverExpected: true,
             landingDataExpectedDate: '2019-07-15',
             landingDataEndDate: '2019-08-14',
@@ -4201,6 +4369,14 @@ describe("Mapping toDefraCcLandingStatus", () => {
             },
             transportationVehicle: 'directLanding',
             licenceHolder: 'Mr Bob',
+            exclusiveEconomicZones: [
+              {
+                officialCountryName: "United Kingdom",
+                isoCodeAlpha2: "GB", 
+                isoCodeAlpha3: "GBR",
+                isoNumericCode: "826"
+              }
+            ],
             dataEverExpected: true,
             landingDataExpectedDate: '2019-07-11',
             landingDataEndDate: '2019-07-12'
@@ -4266,6 +4442,14 @@ describe("Mapping toDefraCcLandingStatus", () => {
             },
             transportationVehicle: 'directLanding',
             licenceHolder: 'Mr Bob',
+            exclusiveEconomicZones: [
+              {
+                officialCountryName: "United Kingdom",
+                isoCodeAlpha2: "GB", 
+                isoCodeAlpha3: "GBR",
+                isoNumericCode: "826"
+              }
+            ],
             dataEverExpected: true,
             landingDataExpectedDate: '2024-07-05',
             landingDataEndDate: moment.utc().add(1, 'day').format('YYYY-MM-DD'),
@@ -4331,6 +4515,14 @@ describe("Mapping toDefraCcLandingStatus", () => {
             },
             transportationVehicle: 'directLanding',
             licenceHolder: 'Mr Bob',
+            exclusiveEconomicZones: [
+              {
+                officialCountryName: "United Kingdom",
+                isoCodeAlpha2: "GB", 
+                isoCodeAlpha3: "GBR",
+                isoNumericCode: "826"
+              }
+            ],
             dataEverExpected: true,
             landingDataExpectedDate: '2019-07-15',
             landingDataEndDate: '2019-08-12'

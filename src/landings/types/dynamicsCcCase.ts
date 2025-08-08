@@ -47,6 +47,7 @@ export interface IBaseLanding {
     weight: number;
     gearType?: string;
     highSeasArea?: string;
+    exclusiveEconomicZones?: ICountry[];
     rfmo?: string;
     numberOfTotalSubmissions: number;
     validation: IDynamicsLandingValidation;

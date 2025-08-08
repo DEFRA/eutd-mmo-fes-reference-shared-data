@@ -76,6 +76,7 @@ export interface Catch {
   gearType?: string;
   highSeasArea?: string;
   rfmo?: string;
+  exclusiveEconomicZones?: ICountry[];
   _status?: LandingStatus;
   numberOfSubmissions?: number;
   vesselOverriddenByAdmin?: boolean;

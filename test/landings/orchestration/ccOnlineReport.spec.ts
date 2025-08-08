@@ -284,6 +284,20 @@ describe('When updating a landing within an online Catch Certificate', () => {
         cfr: "GBRC1121091",
         highSeasArea: "yes",
         rfmo: "NAFO",
+        exclusiveEconomicZones: [
+          {
+            officialCountryName: "Nigeria", 
+            isoCodeAlpha2: "NG", 
+            isoCodeAlpha3: "NGA", 
+            isoNumericCode: "566"
+          }, 
+          { 
+            officialCountryName: "France",
+            isoCodeAlpha2: "FR",
+            isoCodeAlpha3: "FRA",
+            isoNumericCode: "250"
+          }
+        ], 
         presentation: "WHL",
         presentationName: "Whole",
         species: "Atlantic cod (COD)",
@@ -352,6 +366,20 @@ describe('When updating a landing within an online Catch Certificate', () => {
         cfr: "GBRC1121091",
         highSeasArea: "yes",
         rfmo: "NAFO",
+        exclusiveEconomicZones: [
+          {
+            officialCountryName: "Nigeria", 
+            isoCodeAlpha2: "NG", 
+            isoCodeAlpha3: "NGA", 
+            isoNumericCode: "566"
+          }, 
+          { 
+            officialCountryName: "France",
+            isoCodeAlpha2: "FR",
+            isoCodeAlpha3: "FRA",
+            isoNumericCode: "250"
+          }
+        ], 
         presentation: "WHL",
         presentationName: "Whole",
         species: "Atlantic cod (COD)",
@@ -421,6 +449,20 @@ describe('When updating a landing within an online Catch Certificate', () => {
         cfr: "GBRC1121091",
         highSeasArea: "yes",
         rfmo: "NAFO",
+        exclusiveEconomicZones: [
+          {
+            officialCountryName: "Nigeria", 
+            isoCodeAlpha2: "NG", 
+            isoCodeAlpha3: "NGA", 
+            isoNumericCode: "566"
+          }, 
+          { 
+            officialCountryName: "France",
+            isoCodeAlpha2: "FR",
+            isoCodeAlpha3: "FRA",
+            isoNumericCode: "250"
+          }
+        ], 
         presentation: "WHL",
         presentationName: "Whole",
         species: "Atlantic cod (COD)",
@@ -490,6 +532,20 @@ describe('When updating a landing within an online Catch Certificate', () => {
         cfr: "GBRC1121091",
         highSeasArea: "yes",
         rfmo: "NAFO",
+        exclusiveEconomicZones: [
+          {
+            officialCountryName: "Nigeria", 
+            isoCodeAlpha2: "NG", 
+            isoCodeAlpha3: "NGA", 
+            isoNumericCode: "566"
+          }, 
+          { 
+            officialCountryName: "France",
+            isoCodeAlpha2: "FR",
+            isoCodeAlpha3: "FRA",
+            isoNumericCode: "250"
+          }
+        ], 
         presentation: "WHL",
         presentationName: "Whole",
         species: "Atlantic cod (COD)",
@@ -559,6 +615,20 @@ describe('When updating a landing within an online Catch Certificate', () => {
         cfr: "GBRC1121091",
         highSeasArea: "yes",
         rfmo: "NAFO",
+        exclusiveEconomicZones: [
+          {
+            officialCountryName: "Nigeria", 
+            isoCodeAlpha2: "NG", 
+            isoCodeAlpha3: "NGA", 
+            isoNumericCode: "566"
+          }, 
+          { 
+            officialCountryName: "France",
+            isoCodeAlpha2: "FR",
+            isoCodeAlpha3: "FRA",
+            isoNumericCode: "250"
+          }
+        ], 
         presentation: "WHL",
         presentationName: "Whole",
         species: "Atlantic cod (COD)",
@@ -627,6 +697,20 @@ describe('When updating a landing within an online Catch Certificate', () => {
         cfr: "GBRC1121091",
         highSeasArea: "yes",
         rfmo: "NAFO",
+        exclusiveEconomicZones: [
+          {
+            officialCountryName: "Nigeria", 
+            isoCodeAlpha2: "NG", 
+            isoCodeAlpha3: "NGA", 
+            isoNumericCode: "566"
+          }, 
+          { 
+            officialCountryName: "France",
+            isoCodeAlpha2: "FR",
+            isoCodeAlpha3: "FRA",
+            isoNumericCode: "250"
+          }
+        ], 
         presentation: "WHL",
         presentationName: "Whole",
         species: "Atlantic cod (COD)",
@@ -685,6 +769,20 @@ describe('When updating a landing within an online Catch Certificate', () => {
         cfr: "GBRC1121091",
         highSeasArea: "yes",
         rfmo: "NAFO",
+        exclusiveEconomicZones: [
+          {
+            officialCountryName: "Nigeria", 
+            isoCodeAlpha2: "NG", 
+            isoCodeAlpha3: "NGA", 
+            isoNumericCode: "566"
+          }, 
+          { 
+            officialCountryName: "France",
+            isoCodeAlpha2: "FR",
+            isoCodeAlpha3: "FRA",
+            isoNumericCode: "250"
+          }
+        ], 
         presentation: "WHL",
         presentationName: "Whole",
         species: "Atlantic cod (COD)",
@@ -755,6 +853,20 @@ describe('When updating a landing within an online Catch Certificate', () => {
         cfr: "GBRC1121091",
         highSeasArea: "yes",
         rfmo: "NAFO",
+        exclusiveEconomicZones: [
+          {
+            officialCountryName: "Nigeria", 
+            isoCodeAlpha2: "NG", 
+            isoCodeAlpha3: "NGA", 
+            isoNumericCode: "566"
+          }, 
+          { 
+            officialCountryName: "France",
+            isoCodeAlpha2: "FR",
+            isoCodeAlpha3: "FRA",
+            isoNumericCode: "250"
+          }
+        ], 
         presentation: "WHL",
         presentationName: "Whole",
         species: "Atlantic cod (COD)",
@@ -823,6 +935,20 @@ describe('When updating a landing within an online Catch Certificate', () => {
         cfr: "GBRC1121091",
         highSeasArea: "yes",
         rfmo: "NAFO",
+        exclusiveEconomicZones: [
+          {
+            officialCountryName: "Nigeria", 
+            isoCodeAlpha2: "NG", 
+            isoCodeAlpha3: "NGA", 
+            isoNumericCode: "566"
+          }, 
+          { 
+            officialCountryName: "France",
+            isoCodeAlpha2: "FR",
+            isoCodeAlpha3: "FRA",
+            isoNumericCode: "250"
+          }
+        ], 
         presentation: "WHL",
         presentationName: "Whole",
         species: "Atlantic cod (COD)",
@@ -891,6 +1017,20 @@ describe('When updating a landing within an online Catch Certificate', () => {
         cfr: "GBRC1121091",
         highSeasArea: "yes",
         rfmo: "NAFO",
+        exclusiveEconomicZones: [
+          {
+            officialCountryName: "Nigeria", 
+            isoCodeAlpha2: "NG", 
+            isoCodeAlpha3: "NGA", 
+            isoNumericCode: "566"
+          }, 
+          { 
+            officialCountryName: "France",
+            isoCodeAlpha2: "FR",
+            isoCodeAlpha3: "FRA",
+            isoNumericCode: "250"
+          }
+        ], 
         presentation: "WHL",
         presentationName: "Whole",
         species: "Atlantic cod (COD)",
