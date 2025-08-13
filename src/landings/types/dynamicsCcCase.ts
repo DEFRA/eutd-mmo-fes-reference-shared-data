@@ -28,6 +28,8 @@ export interface IDynamicsCatchCertificateCase {
     parentDocumentVoid?: boolean;
 }
 
+export type HighSeasAreaType = 'Yes' | 'No';
+
 export interface IBaseLanding {
     id: string;
     startDate?: string;
@@ -46,8 +48,8 @@ export interface IBaseLanding {
     source?: string;
     weight: number;
     gearType?: string;
-    highSeasArea?: string;
-    exclusiveEconomicZones?: ICountry[];
+    highSeasArea?: HighSeasAreaType;
+    exclusiveEconomicZones?: string;
     rfmo?: string;
     numberOfTotalSubmissions: number;
     validation: IDynamicsLandingValidation;
