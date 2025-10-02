@@ -5,3 +5,4 @@ service_bus/
 .env
 .DS_Store
 test-results/
+.idea/
