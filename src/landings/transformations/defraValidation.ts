@@ -114,12 +114,16 @@ export function toCcDefraReport(documentNumber: string, correlationId: string, s
       result.transportation = toTransportation(exportData.transportation);
       result.exportedFrom = exportData.transportation.exportedFrom;
       result.exportedTo = exportData.transportation.exportedTo;
+      result.pointOfDestination = exportData.pointOfDestination || exportData.transportation.pointOfDestination;
    }
-
+   if(exportData.pointOfDestination) {
+      result.pointOfDestination = exportData.pointOfDestination;
+   }
    if (shouldAddTransportations(exportData)) {
       result.transportations = exportData.transportations.map((transportation) => toTransportations(transportation));
       result.exportedFrom = exportData.exportedFrom;
       result.exportedTo = exportData.exportedTo;
+      result.pointOfDestination = exportData.pointOfDestination;
    }
 
    if (shouldAddProducts(exportData)) {
@@ -200,14 +204,16 @@ export function toTransportation(transportation): CertificateTransport {
             nationality: transportation.nationalityOfVehicle,
             registration: transportation.registrationNumber,
             exportLocation: transportation.departurePlace,
-            exportDate: transportation.exportDate
+            exportDate: transportation.exportDate,
+            pointOfDestination: transportation.pointOfDestination
          }
       case TRANSPORT_VEHICLE_TRAIN:
          return {
             modeofTransport: transportation.vehicle,
             billNumber: transportation.railwayBillNumber,
             exportLocation: transportation.departurePlace,
-            exportDate: transportation.exportDate
+            exportDate: transportation.exportDate,
+            pointOfDestination: transportation.pointOfDestination
          }
       case TRANSPORT_VEHICLE_PLANE:
          return {
@@ -215,7 +221,8 @@ export function toTransportation(transportation): CertificateTransport {
             flightNumber: transportation.flightNumber,
             containerId: transportation.containerNumber,
             exportLocation: transportation.departurePlace,
-            exportDate: transportation.exportDate
+            exportDate: transportation.exportDate,
+            pointOfDestination: transportation.pointOfDestination
          }
       case TRANSPORT_VEHICLE_CONTAINER_VESSEL:
          return {
@@ -224,13 +231,15 @@ export function toTransportation(transportation): CertificateTransport {
             flag: transportation.flagState,
             containerId: transportation.containerNumber,
             exportLocation: transportation.departurePlace,
-            exportDate: transportation.exportDate
+            exportDate: transportation.exportDate,
+            pointOfDestination: transportation.pointOfDestination
          }
       default:
          return {
             modeofTransport: transportation.vehicle,
             exportLocation: transportation.departurePlace,
-            exportDate: transportation.exportDate
+            exportDate: transportation.exportDate,
+            pointOfDestination: transportation.pointOfDestination
          }
    }
 }
@@ -252,6 +261,7 @@ export function toTransportations(transportation): CatchCertificateTransport {
             registration: transportation.registrationNumber,
             exportLocation: transportation.departurePlace,
             transportDocuments,
+            pointOfDestination: transportation.pointOfDestination
          }
       case TRANSPORT_VEHICLE_TRAIN:
          return {
@@ -261,6 +271,7 @@ export function toTransportations(transportation): CatchCertificateTransport {
             billNumber: transportation.railwayBillNumber,
             exportLocation: transportation.departurePlace,
             transportDocuments,
+            pointOfDestination: transportation.pointOfDestination
          }
       case TRANSPORT_VEHICLE_PLANE:
          return {
@@ -271,6 +282,7 @@ export function toTransportations(transportation): CatchCertificateTransport {
             containerId: transportation.containerNumber,
             exportLocation: transportation.departurePlace,
             transportDocuments,
+            pointOfDestination: transportation.pointOfDestination
          }
       case TRANSPORT_VEHICLE_CONTAINER_VESSEL:
          return {
@@ -282,6 +294,7 @@ export function toTransportations(transportation): CatchCertificateTransport {
             containerId: transportation.containerNumber,
             exportLocation: transportation.departurePlace,
             transportDocuments,
+            pointOfDestination: transportation.pointOfDestination
          }
       default:
          return null;

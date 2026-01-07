@@ -40,6 +40,7 @@ export function mapLandingWithLandingStatus(product: Product, validation: ICcQue
       homePort: validation.extended.homePort,
       flag: validation.extended.flag,
       cfr: validation.extended.cfr,
+      ircs: validation.extended.ircs,
       imoNumber: validation.extended.imoNumber,
       licenceNumber: validation.extended.licenceNumber,
       licenceValidTo: validation.extended.licenceValidTo,

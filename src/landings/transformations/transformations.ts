@@ -211,6 +211,7 @@ export function* unwindCatchCerts(catchCerts) {
             fao: caughtBy.faoArea,
             flag: caughtBy.flag,
             cfr: caughtBy.cfr,
+            ircs: caughtBy.ircs,
             highSeasArea: caughtBy.highSeasArea,
             exclusiveEconomicZones: caughtBy.exclusiveEconomicZones,
             rfmo: caughtBy.rfmo,

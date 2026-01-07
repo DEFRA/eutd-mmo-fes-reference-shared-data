@@ -1,5 +1,9 @@
 import axios from "axios";
-import { BoomiService, IBoomiAddressResponse } from '../../src/services/boomi.service';
+import {
+  BoomiService,
+  IBoomiAddressResponse,
+  IEuUpgradeResponse,
+} from '../../src/services/boomi.service';
 import {
   mockLandingData,
   mockCatchActivitiesData,
@@ -13,15 +17,15 @@ import logger from "../../src/logger";
 const moment = require('moment');
 moment.suppressDeprecationWarnings = true;
 
-const { v4:uuid } = require('uuid');
+const { v4: uuid } = require('uuid');
 
 jest.mock('uuid');
 jest.mock('axios');
 
 describe('The boomi service', () => {
 
-  let mockSendRequest;
-  let mockConfig;
+  let mockSendRequest: jest.SpyInstance;
+  let mockConfig: jest.SpyInstance;
 
   beforeEach(() => {
     jest.resetModules();
@@ -122,7 +126,7 @@ describe('The boomi service', () => {
     expect(mockSendRequest).toHaveBeenCalled();
     expect(response).toBe(null);
   });
-  
+
   it('Should return landings when calling getCatchActivity directly', async () => {
     mockSendRequest.mockResolvedValue(mockCatchActivitiesData);
 
@@ -132,7 +136,7 @@ describe('The boomi service', () => {
     expect(response).toBe(mockCatchActivitiesData);
   });
 
-  it('Should not throw an error if there is no page object when calling getCatchActivity with version 2 of the catch activity api', async () => {  
+  it('Should not throw an error if there is no page object when calling getCatchActivity with version 2 of the catch activity api', async () => {
     mockSendRequest.mockResolvedValue(mockFishingActivitiesData);
 
     const response = await BoomiService.getCatchActivity('2019-12-02', '123');
@@ -261,9 +265,9 @@ describe('Boomi callingUrl', () => {
 
 describe('getAddresses', () => {
 
-  let mockSendRequest;
-  let mockMapAddresses;
-  let mockConfig;
+  let mockSendRequest: jest.SpyInstance;
+  let mockMapAddresses: jest.SpyInstance;
+  let mockConfig: jest.SpyInstance;
 
   beforeEach(() => {
     mockSendRequest = jest.spyOn(BoomiService, 'sendRequest');
@@ -318,7 +322,7 @@ describe('getAddresses', () => {
   });
 
   it('will map and return addresses if sendRequest returns a result', async () => {
-    const apiResponse = {test: 'test'};
+    const apiResponse = { test: 'test' };
     const mappedAddresses = ['address 1', 'address 2'];
 
     mockSendRequest.mockResolvedValue(apiResponse);
@@ -372,7 +376,7 @@ describe('mapAddresses', () => {
     expect(BoomiService.mapAddresses(input)).toStrictEqual([]);
   });
 
-    it('will handle empty results when null', () => {
+  it('will handle empty results when null', () => {
     const input: IBoomiAddressResponse | undefined = undefined;
 
     expect(BoomiService.mapAddresses(input)).toStrictEqual([]);
@@ -388,7 +392,7 @@ describe('mapAddresses', () => {
 
   it('will map an address with no optional fields', () => {
     const input: IBoomiAddressResponse = {
-      results: [{Address: minimumAddress}]
+      results: [{ Address: minimumAddress }]
     };
 
     const result = BoomiService.mapAddresses(input);
@@ -396,7 +400,7 @@ describe('mapAddresses', () => {
     expect(result).toStrictEqual([
       {
         address_line: "ADDRESSLINE",
-        city : 'TOWN',
+        city: 'TOWN',
         postCode: 'POSTCODE'
       }
     ])
@@ -404,7 +408,7 @@ describe('mapAddresses', () => {
 
   it('will map an address with every optional field', () => {
     const input: IBoomiAddressResponse = {
-      results: [{Address: fullAddress}]
+      results: [{ Address: fullAddress }]
     };
 
     const result = BoomiService.mapAddresses(input);
@@ -449,12 +453,12 @@ describe('mapAddresses', () => {
     expect(result).toStrictEqual([
       {
         address_line: "ADDRESSLINE1",
-        city : 'TOWN1',
+        city: 'TOWN1',
         postCode: 'POSTCODE1'
       },
       {
         address_line: "ADDRESSLINE2",
-        city : 'TOWN2',
+        city: 'TOWN2',
         postCode: 'POSTCODE2'
       }
     ])
@@ -480,11 +484,11 @@ describe('call sendRequest', () => {
     access_token: 'access token 1234'
   };
 
-  let mockAxiosPost;
-  let mockAxiosGet;
-  let mockLoggerInfo;
-  let mockLoggerError;
-  let mockConfig;
+  let mockAxiosPost: jest.SpyInstance;
+  let mockAxiosGet: jest.SpyInstance;
+  let mockLoggerInfo: jest.SpyInstance;
+  let mockLoggerError: jest.SpyInstance;
+  let mockConfig: jest.SpyInstance;
 
   beforeEach(() => {
     mockAxiosPost = jest.spyOn(axios, 'post');
@@ -524,9 +528,9 @@ describe('call sendRequest', () => {
 
   it('will send request', async () => {
 
-    const response = await BoomiService.sendRequest('address', reqHeaders,  "/url", { postcode: 'AB1 1AB' });
+    const response = await BoomiService.sendRequest('address', reqHeaders, "/url", { postcode: 'AB1 1AB' });
 
-    expect(mockAxiosPost).toHaveBeenCalled();  
+    expect(mockAxiosPost).toHaveBeenCalled();
     expect(mockAxiosGet).toHaveBeenCalled();
     expect(response).toBeNull();
     expect(mockLoggerInfo).toHaveBeenCalledWith('[BOOMI-SERVICE][address][REQUESTING-OAUTH-TOKEN]');
@@ -534,9 +538,9 @@ describe('call sendRequest', () => {
 
   it('will send request with landing', async () => {
 
-    const response = await BoomiService.sendRequest('landing', reqHeaders,  "/url", { postcode: 'AB1 1AB' });
+    const response = await BoomiService.sendRequest('landing', reqHeaders, "/url", { postcode: 'AB1 1AB' });
 
-    expect(mockAxiosPost).toHaveBeenCalled();  
+    expect(mockAxiosPost).toHaveBeenCalled();
     expect(mockAxiosGet).toHaveBeenCalled();
     expect(response).toBeNull();
     expect(mockLoggerInfo).toHaveBeenCalledWith('[BOOMI-SERVICE][landing][REQUESTING-OAUTH-TOKEN]');
@@ -546,26 +550,26 @@ describe('call sendRequest', () => {
     const error = { response: undefined };
     mockAxiosPost.mockRejectedValue(error);
 
-    await expect(BoomiService.sendRequest('address', reqHeaders,  "/url", { postcode: 'AB1 1AB' })).rejects.toThrow();
-    
+    await expect(BoomiService.sendRequest('address', reqHeaders, "/url", { postcode: 'AB1 1AB' })).rejects.toThrow();
+
     expect(mockLoggerError).toHaveBeenCalledWith(`[BOOMI-SERVICE][address][ERROR][UNABLE-TO-GET-OAUTH-TOKEN][${error}]`);
   });
 
   it('will return null if no data is found', async () => {
 
-    const response = await BoomiService.sendRequest('address', reqHeaders,  "/url", { postcode: 'AB1 1AB' });
+    const response = await BoomiService.sendRequest('address', reqHeaders, "/url", { postcode: 'AB1 1AB' });
 
-    expect(mockAxiosPost).toHaveBeenCalled();  
+    expect(mockAxiosPost).toHaveBeenCalled();
     expect(mockAxiosGet).toHaveBeenCalled();
     expect(response).toBeNull();
   });
 
   it('will return landing data if found', async () => {
-    mockAxiosGet.mockResolvedValueOnce({data: { landingData: 'landing declaration' }});
+    mockAxiosGet.mockResolvedValueOnce({ data: { landingData: 'landing declaration' } });
 
-    const response = await BoomiService.sendRequest('address', reqHeaders,  "/url", { postcode: 'AB1 1AB' });
+    const response = await BoomiService.sendRequest('address', reqHeaders, "/url", { postcode: 'AB1 1AB' });
 
-    expect(mockAxiosPost).toHaveBeenCalled();  
+    expect(mockAxiosPost).toHaveBeenCalled();
     expect(mockAxiosGet).toHaveBeenCalled();
     expect(response).toEqual({ landingData: 'landing declaration' });
   });
@@ -574,8 +578,8 @@ describe('call sendRequest', () => {
     const error = { response: null };
     mockAxiosGet.mockRejectedValue(error);
 
-    const response = await BoomiService.sendRequest('address', reqHeaders,  "/url", { postcode: 'AB1 1AB' });
-    
+    const response = await BoomiService.sendRequest('address', reqHeaders, "/url", { postcode: 'AB1 1AB' });
+
     expect(mockLoggerError).toHaveBeenCalledWith(`[BOOMI-SERVICE][address][API][ERROR] ${error}`);
     expect(response).toBeUndefined();
   });
@@ -584,25 +588,565 @@ describe('call sendRequest', () => {
     const error = { response: undefined };
     mockAxiosGet.mockRejectedValue(error);
 
-    await expect(BoomiService.sendRequest('address', reqHeaders,  "/url", { postcode: 'AB1 1AB' })).rejects.toThrow();
-    
+    await expect(BoomiService.sendRequest('address', reqHeaders, "/url", { postcode: 'AB1 1AB' })).rejects.toThrow();
+
     expect(mockLoggerError).toHaveBeenCalledWith(`[BOOMI-SERVICE][address][API][ERROR] ${error}`);
   });
 
   it('should call the sendRequest and throw specific error', async () => {
-    const error = { response: {
-      status: 504,
-      statusText: 'something has gone wrong',
-      headers: { x_header: 'something' },
-      data: { landing: 'error' }
-    }}
+    const error = {
+      response: {
+        status: 504,
+        statusText: 'something has gone wrong',
+        headers: { x_header: 'something' },
+        data: { landing: 'error' }
+      }
+    }
     mockAxiosGet.mockRejectedValue(error);
 
-    await expect(BoomiService.sendRequest('address', reqHeaders,  "/url", { postcode: 'AB1 1AB' })).rejects.toThrow();
-    
+    await expect(BoomiService.sendRequest('address', reqHeaders, "/url", { postcode: 'AB1 1AB' })).rejects.toThrow();
+
     expect(mockLoggerError).toHaveBeenCalledWith(`[BOOMI-SERVICE][address][API][ERROR] ${error}`);
     expect(mockLoggerError).toHaveBeenCalledWith("[BOOMI-SERVICE][address][API][ERROR][RESPONSE][STATUS]", 504);
     expect(mockLoggerError).toHaveBeenCalledWith("[BOOMI-SERVICE][address][API][ERROR][RESPONSE][DATA]", { "landing": 'error' });
   });
 
+});
+
+describe('CATCH API Integration (FI0-10355)', () => {
+  let mockLoggerInfo: jest.SpyInstance;
+  let mockLoggerError: jest.SpyInstance;
+
+  beforeEach(() => {
+    mockLoggerInfo = jest.spyOn(logger, 'info').mockImplementation(() => { });
+    mockLoggerError = jest.spyOn(logger, 'error').mockImplementation(() => { });
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+    jest.clearAllMocks();
+  });
+
+  describe('getEntraOAuthToken', () => {
+    let mockAxiosPost: jest.SpyInstance;
+    let mockConfig: jest.SpyInstance;
+
+    beforeEach(() => {
+      mockAxiosPost = jest.spyOn(axios, 'post');
+      mockConfig = jest.spyOn(config, 'getConfig');
+    });
+
+    afterEach(() => {
+      mockAxiosPost.mockRestore();
+      mockConfig.mockRestore();
+    });
+
+    it('should successfully get OAuth token for catchSubmit', async () => {
+      const mockTokenResponse = {
+        data: {
+          token_type: 'Bearer',
+          expires_in: 3600,
+          ext_expires_in: 3600,
+          access_token: 'test-token-catchSubmit'
+        }
+      };
+
+      mockConfig.mockReturnValue({
+        boomiApiOauthClientId: 'client-id',
+        boomiApiOauthClientSecret: 'client-secret',
+        boomiApiOauthTokenUrl: 'https://token-url',
+        boomicatchSubmitOauthScope: 'catch-scope'
+      } as any);
+
+      mockAxiosPost.mockResolvedValue(mockTokenResponse);
+
+      const result = await BoomiService.getEntraOAuthToken('catchSubmit');
+
+      expect(result).toEqual(mockTokenResponse.data);
+      expect(mockLoggerInfo).toHaveBeenCalledWith('[BOOMI-SERVICE][catchSubmit][REQUESTING-OAUTH-TOKEN]');
+      expect(mockLoggerInfo).toHaveBeenCalledWith('[BOOMI-SERVICE][catchSubmit][OAUTH-TOKEN-RECEIVED]');
+    });
+
+    it('should successfully get OAuth token for address', async () => {
+      const mockTokenResponse = {
+        data: {
+          token_type: 'Bearer',
+          expires_in: 3600,
+          ext_expires_in: 3600,
+          access_token: 'test-token-address'
+        }
+      };
+
+      mockConfig.mockReturnValue({
+        boomiApiOauthClientId: 'client-id',
+        boomiApiOauthClientSecret: 'client-secret',
+        boomiApiOauthTokenUrl: 'https://token-url',
+        boomiAddressLookupApiOauthScope: 'address-scope'
+      } as any);
+
+      mockAxiosPost.mockResolvedValue(mockTokenResponse);
+
+      const result = await BoomiService.getEntraOAuthToken('address');
+
+      expect(result).toEqual(mockTokenResponse.data);
+      expect(mockLoggerInfo).toHaveBeenCalledWith('[BOOMI-SERVICE][address][REQUESTING-OAUTH-TOKEN]');
+    });
+
+    it('should successfully get OAuth token for landing', async () => {
+      const mockTokenResponse = {
+        data: {
+          token_type: 'Bearer',
+          expires_in: 3600,
+          ext_expires_in: 3600,
+          access_token: 'test-token-landing'
+        }
+      };
+
+      mockConfig.mockReturnValue({
+        boomiApiOauthClientId: 'client-id',
+        boomiApiOauthClientSecret: 'client-secret',
+        boomiApiOauthTokenUrl: 'https://token-url',
+        boomiLandingApiOauthScope: 'landing-scope'
+      } as any);
+
+      mockAxiosPost.mockResolvedValue(mockTokenResponse);
+
+      const result = await BoomiService.getEntraOAuthToken('landing');
+
+      expect(result).toEqual(mockTokenResponse.data);
+      expect(mockLoggerInfo).toHaveBeenCalledWith('[BOOMI-SERVICE][landing][REQUESTING-OAUTH-TOKEN]');
+    });
+
+    it('should successfully get OAuth token for other resource types (catchActivity)', async () => {
+      const mockTokenResponse = {
+        data: {
+          token_type: 'Bearer',
+          expires_in: 3600,
+          ext_expires_in: 3600,
+          access_token: 'test-token-catchactivity'
+        }
+      };
+
+      mockConfig.mockReturnValue({
+        boomiApiOauthClientId: 'client-id',
+        boomiApiOauthClientSecret: 'client-secret',
+        boomiApiOauthTokenUrl: 'https://token-url',
+        boomiLandingApiOauthScope: 'landing-scope'
+      } as any);
+
+      mockAxiosPost.mockResolvedValue(mockTokenResponse);
+
+      const result = await BoomiService.getEntraOAuthToken('catchActivity');
+
+      expect(result).toEqual(mockTokenResponse.data);
+      expect(mockLoggerInfo).toHaveBeenCalledWith('[BOOMI-SERVICE][catchActivity][REQUESTING-OAUTH-TOKEN]');
+    });
+
+    it('should throw error when config is missing', async () => {
+      // Reset mocks to ensure clean state
+      mockAxiosPost.mockClear();
+      mockConfig.mockClear();
+
+      mockConfig.mockReturnValue({
+        boomiApiOauthClientId: undefined,
+        boomiApiOauthClientSecret: undefined,
+        boomiApiOauthTokenUrl: undefined,
+        boomiAddressLookupApiOauthScope: undefined,
+        boomiLandingApiOauthScope: undefined
+      } as any);
+
+      const mockError = new Error('Invalid request');
+      mockAxiosPost.mockRejectedValue(mockError);
+
+      await expect(BoomiService.getEntraOAuthToken('catchSubmit')).rejects.toThrow('Failed to get catchSubmit OAuth token');
+      expect(mockLoggerError).toHaveBeenCalledWith(expect.stringContaining('[BOOMI-SERVICE][catchSubmit][ERROR]'));
+    });
+
+    it('should handle OAuth token request failure', async () => {
+      mockConfig.mockReturnValue({
+        boomiApiOauthClientId: 'client-id',
+        boomiApiOauthClientSecret: 'client-secret',
+        boomiApiOauthTokenUrl: 'https://token-url',
+        boomicatchSubmitOauthScope: 'catch-scope',
+        boomiLandingApiOauthScope: 'landing-scope'
+      } as any);
+
+      const mockError = new Error('Network error');
+      mockAxiosPost.mockRejectedValue(mockError);
+
+      await expect(BoomiService.getEntraOAuthToken('catchSubmit')).rejects.toThrow('Failed to get catchSubmit OAuth token: Network error');
+      expect(mockLoggerError).toHaveBeenCalledWith(expect.stringContaining('[BOOMI-SERVICE][catchSubmit][ERROR]'));
+    });
+
+    it('should handle OAuth token request failure with stack trace', async () => {
+      mockConfig.mockReturnValue({
+        boomiApiOauthClientId: 'client-id',
+        boomiApiOauthClientSecret: 'client-secret',
+        boomiApiOauthTokenUrl: 'https://token-url',
+        boomiLandingApiOauthScope: 'landing-scope'
+      } as any);
+
+      const mockError: any = { stack: 'Error stack trace here' };
+      mockAxiosPost.mockRejectedValue(mockError);
+
+      await expect(BoomiService.getEntraOAuthToken('catchSubmit')).rejects.toThrow('Failed to get catchSubmit OAuth token:');
+      expect(mockLoggerError).toHaveBeenCalledWith(expect.stringContaining('Error stack trace here'));
+    });
+
+    it('should handle OAuth token request failure without stack or message', async () => {
+      mockConfig.mockReturnValue({
+        boomiApiOauthClientId: 'client-id',
+        boomiApiOauthClientSecret: 'client-secret',
+        boomiApiOauthTokenUrl: 'https://token-url',
+        boomiLandingApiOauthScope: 'landing-scope'
+      } as any);
+
+      const mockError = 'Simple string error';
+      mockAxiosPost.mockRejectedValue(mockError);
+
+      await expect(BoomiService.getEntraOAuthToken('catchSubmit')).rejects.toThrow('Failed to get catchSubmit OAuth token: Simple string error');
+      expect(mockLoggerError).toHaveBeenCalledWith(expect.stringContaining('Simple string error'));
+    });
+  });
+
+  describe('sendDocumentToBoomi', () => {
+    let mockAxiosPost: jest.SpyInstance;
+    let mockGetEntraOAuthToken: jest.SpyInstance;
+
+    beforeEach(() => {
+      mockAxiosPost = jest.spyOn(axios, 'post');
+      mockGetEntraOAuthToken = jest.spyOn(BoomiService, 'getEntraOAuthToken');
+    });
+
+    it('should successfully submit catch certificate', async () => {
+      const mockPayload = {
+        CreateCatchCertificateRequest: {
+          SPSCertificate: {
+            certificateId: 'CERT-123',
+            exporterName: 'Test Exporter'
+          }
+        }
+      };
+
+      const mockTokenResponse = {
+        token_type: 'Bearer',
+        expires_in: 3600,
+        ext_expires_in: 3600,
+        access_token: 'test-access-token'
+      };
+
+      const mockApiResponse = {
+        status: 'OK',
+        statusCode: '202',
+        message: 'Accepted'
+      };
+
+      mockGetEntraOAuthToken.mockResolvedValue(mockTokenResponse);
+      mockAxiosPost.mockResolvedValue({ data: mockApiResponse, status: 200 });
+
+      const result = await BoomiService.sendDocumentToBoomi(mockPayload, { documentType: 'CATCHCERTIFICATE' }, 'catchSubmit');
+
+      expect(result).toEqual(mockApiResponse);
+      expect(mockGetEntraOAuthToken).toHaveBeenCalledWith('catchSubmit');
+      expect(mockLoggerInfo).toHaveBeenCalledWith('[BOOMI-SERVICE][catchSubmit][SUBMITTING-CATCHCERTIFICATE]');
+    });
+
+    it('should handle API error with response', async () => {
+      const mockPayload = {
+        CreateCatchCertificateRequest: {
+          SPSCertificate: { certificateId: 'CERT-123' }
+        }
+      };
+      const mockTokenResponse = {
+        token_type: 'Bearer',
+        expires_in: 3600,
+        ext_expires_in: 3600,
+        access_token: 'test-access-token'
+      };
+
+      const mockError = {
+        response: {
+          status: 400,
+          statusText: 'Bad Request',
+          data: { error: 'Invalid payload' }
+        }
+      };
+
+      mockGetEntraOAuthToken.mockResolvedValue(mockTokenResponse);
+      mockAxiosPost.mockRejectedValue(mockError);
+
+      await expect(BoomiService.sendDocumentToBoomi(mockPayload, { documentType: 'CATCHCERTIFICATE' }, 'catchSubmit')).rejects.toThrow('CATCHCERTIFICATE API error: 400 - Bad Request');
+      expect(mockLoggerError).toHaveBeenCalledWith('[BOOMI-SERVICE][catchSubmit][ERROR][RESPONSE][STATUS]', 400);
+    });
+
+    it('should handle API error without response', async () => {
+      const mockPayload = {
+        CreateCatchCertificateRequest: {
+          SPSCertificate: { certificateId: 'CERT-123' }
+        }
+      };
+      const mockTokenResponse = {
+        token_type: 'Bearer',
+        expires_in: 3600,
+        ext_expires_in: 3600,
+        access_token: 'test-access-token'
+      };
+
+      const mockError = new Error('Network error');
+
+      mockGetEntraOAuthToken.mockResolvedValue(mockTokenResponse);
+      mockAxiosPost.mockRejectedValue(mockError);
+
+      await expect(BoomiService.sendDocumentToBoomi(mockPayload, { documentType: 'CATCHCERTIFICATE' }, 'catchSubmit')).rejects.toThrow('Failed to submit CATCHCERTIFICATE: Network error');
+    });
+
+    it('should handle error without message property', async () => {
+      const mockPayload = {
+        CreateCatchCertificateRequest: {
+          SPSCertificate: { certificateId: 'CERT-123' }
+        }
+      };
+      const mockTokenResponse = {
+        token_type: 'Bearer',
+        expires_in: 3600,
+        ext_expires_in: 3600,
+        access_token: 'test-access-token'
+      };
+
+      // Error without message property
+      const mockError = 'String error without message property';
+
+      mockGetEntraOAuthToken.mockResolvedValue(mockTokenResponse);
+      mockAxiosPost.mockRejectedValue(mockError);
+
+      await expect(BoomiService.sendDocumentToBoomi(mockPayload, { documentType: 'CATCHCERTIFICATE' }, 'catchSubmit')).rejects.toThrow('Failed to submit CATCHCERTIFICATE: String error without message property');
+    });
+  });
+
+  describe('processEuUpgradeCallback', () => {
+    it('should successfully process successful EU upgrade callback with SOAP envelope', () => {
+      const callbackData = {
+        Envelope: {
+          Header: {
+            Message: {
+              severity: 'debugging',
+              ID: 'WS_REQUEST_ID',
+              Message: '4f387b5b-1616-444c-9870-a131da173efc'
+            },
+            Security: {
+              TimestampType: {
+                Created: '2025-07-31T16:59:07.375+02:00',
+                Expires: '2025-07-31T16:59:12.375+02:00'
+              }
+            }
+          },
+          Body: {
+            SubmitCatchResponse: {
+              SPSAcknowledgement: {
+                SPSAcknowledgementDocument: {
+                  IssueDateTime: {
+                    DateTime: '2025-07-31T16:59:06.732+02:00'
+                  },
+                  StatusCode: {
+                    "@name": "Issued (Validated)",
+                    text: "70"
+                  },
+                  ReasonInformation: 'Message has been successfully processed',
+                  fesDocNumber: "GBR-2026-CC-3FD5E066",
+                  ReferenceSPSReferencedDocument: [
+                    {
+                      TypeCode: {
+                        name: 'Certificate (Catch Certificate)',
+                        value: '16'
+                      },
+                      RelationshipTypeCode: {
+                        name: 'Document reference, internal (Document reference, internal)',
+                        value: 'CAW'
+                      },
+                      ID: {
+                        text: 'CATCH.CC.GB.2025.0000083'
+                      },
+                      AttachmentBinaryObject: {
+                        '@format': 'url',
+                        '@mimeCode': 'text/url',
+                        '@uri': 'https://webgate.acceptance.ec.europa.eu/tracesnt-beta/certificate/catch-certificate/CATCH.CC.GB.2025.0000083'
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      };
+
+      const result: IEuUpgradeResponse = BoomiService.processEuUpgradeCallback(callbackData);
+
+      // Verify it's a success response
+      expect(result.euCatchStatus).toBe('SUCCESS');
+      expect(result.euCatchReferenceNumber).toBe('CATCH.CC.GB.2025.0000083');
+      expect(result.euCatchStatusCode).toBe('70');
+      expect(result.euCatchStatusName).toBe('Issued (Validated)');
+      expect(result.euCatchUri).toBe('https://webgate.acceptance.ec.europa.eu/tracesnt-beta/certificate/catch-certificate/CATCH.CC.GB.2025.0000083');
+      expect(result.euCatchTimestamp).toBe('2025-07-31T16:59:06.732+02:00');
+      expect(result.reasonInformation).toBe('Message has been successfully processed');
+
+      expect(mockLoggerInfo).toHaveBeenCalledWith(
+        expect.stringContaining('[BOOMI-SERVICE][EU-UPGRADE-CALLBACK][SUCCESS][ID:CATCH.CC.GB.2025.0000083]')
+      );
+    });
+
+    it('should successfully process failed EU upgrade callback with SOAP envelope', () => {
+      const callbackData = {
+        Envelope: {
+          Header: {
+            Message: {
+              severity: 'debugging',
+              ID: 'WS_REQUEST_ID',
+              Message: 'b62c0a35-839f-4d90-b745-4bbb8ab0f384'
+            }
+          },
+          Body: {
+            Fault: {
+              faultcode: 'S:Client',
+              faultstring: 'Some business rules are not met',
+              fesDocNumber: "GBR-2026-CC-3FD5E066",
+              detail: {
+                BusinessRulesValidationException: {
+                  Error: [
+                    {
+                      ID: 'SPS-CONSIGNOR-NOT-FOUND',
+                      Message: {
+                        languageID: 'en',
+                        text: 'ID not found or not compatible'
+                      },
+                      Field: {
+                        languageID: 'en',
+                        text: '/SPSCertificate/SPSConsignment/ConsignorSPSParty'
+                      }
+                    },
+                    {
+                      ID: 'CATCH-WS-020',
+                      Message: {
+                        languageID: 'en',
+                        text: '[en] catch.ws.invalid.vessel.fishing.gear.found'
+                      },
+                      Field: {
+                        languageID: 'en',
+                        text: ''
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      };
+
+      const result = BoomiService.processEuUpgradeCallback(callbackData);
+
+      // Verify it's a failure response
+      expect(result.euCatchStatus).toBe('FAILURE');
+
+      // Use type assertion since TypeScript doesn't narrow properly in tests
+      expect(result.faultCode).toBe('S:Client');
+      expect(result.faultString).toBe('Some business rules are not met');
+      expect(result.validationErrors).toHaveLength(2);
+      expect(result.validationErrors?.[0].errorId).toBe('SPS-CONSIGNOR-NOT-FOUND');
+      expect(result.validationErrors?.[0].errorMessage).toBe('ID not found or not compatible');
+      expect(result.validationErrors?.[0].errorField).toBe('/SPSCertificate/SPSConsignment/ConsignorSPSParty');
+      expect(result.validationErrors?.[1].errorId).toBe('CATCH-WS-020');
+    });
+
+    it('should throw error when envelope structure is invalid', () => {
+      const callbackData = {
+        Envelope: {
+          Header: {
+            Message: {
+              severity: 'debugging',
+              ID: 'WS_REQUEST_ID',
+              Message: 'test-request-id'
+            }
+          },
+          Body: {}
+        }
+      };
+
+      expect(() => BoomiService.processEuUpgradeCallback(callbackData as any)).toThrow('Failed to process EU upgrade callback: Unknown callback payload structure - neither success nor fault response');
+    });
+
+    it('should throw error when envelope is missing', () => {
+      const callbackData = {} as any;
+
+      expect(() => BoomiService.processEuUpgradeCallback(callbackData)).toThrow('Failed to process EU upgrade callback: Invalid callback payload structure');
+    });
+
+    it('should process a pending response from Boomi', () => {
+      const callbackData = {
+        CatchCertificateResponse: {
+          status: "IN_PROGRESS",
+          statusMessage: "Catch certificate is being retried.",
+          fesDocNumber: "GBR-2025-CC-0E8E95F97"
+        }
+      } as any;
+
+      const result = BoomiService.processEuUpgradeCallback(callbackData);
+
+      expect(result.euCatchStatus).toBe('IN_PROGRESS');
+      expect(result.documentNumber).toBe('GBR-2025-CC-0E8E95F97');
+      expect(result.euCatchStatusMessage).toBe('Catch certificate is being retried.');
+    });
+
+    it('should process a server error response from Boomi', () => {
+      const callbackData = {
+        Envelope: {
+          Body: {
+            Fault: {
+              faultcode: "S:Server",
+              faultstring: "bad unexpected thing",
+              fesDocNumber: "GBR-2025-CC-E45C5652D"
+            }
+          }
+        }
+      } as any;
+
+      const result = BoomiService.processEuUpgradeCallback(callbackData);
+
+      expect(result.euCatchStatus).toBe('FAILURE');
+      expect(result.documentNumber).toBe('GBR-2025-CC-E45C5652D');
+      expect(result.faultCode).toBe('S:Server');
+      expect(result.faultString).toBe('bad unexpected thing');
+    });
+
+    it('should throw error when callbackdata is missing', () => {
+      expect(() => BoomiService.processEuUpgradeCallback(undefined)).toThrow('Failed to process EU upgrade callback: Invalid callback payload structure');
+    });
+
+    it('should handle error without message property', () => {
+      const callbackData = {
+        Envelope: {
+          Header: {
+            Message: {
+              severity: 'debugging',
+              ID: 'WS_REQUEST_ID',
+              Message: 'test-request-id'
+            }
+          },
+          Body: {
+            SubmitCatchResponse: {
+              SPSAcknowledgement: {
+                SPSAcknowledgementDocument: {
+                  ReferenceSPSReferencedDocument: null // This will cause TypeError
+                }
+              }
+            }
+          }
+        }
+      };
+
+      expect(() => BoomiService.processEuUpgradeCallback(callbackData as any)).toThrow('Failed to process EU upgrade callback:');
+      expect(mockLoggerError).toHaveBeenCalledWith('[BOOMI-SERVICE][EU-UPGRADE-CALLBACK][ERROR][Cannot read properties of null (reading \'0\')]');
+    });
+  });
 });

@@ -65,6 +65,7 @@ export interface Catch {
   homePort?: string;
   flag?: string; // jurisdiction under whose laws the vessel is registered or licensed
   cfr?: string; // cost and freight (CFR) is a legal term
+  ircs?: string | null;
   imoNumber?: string | null;
   licenceNumber?: string;
   licenceValidTo?: string;
