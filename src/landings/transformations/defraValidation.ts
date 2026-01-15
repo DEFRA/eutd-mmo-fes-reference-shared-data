@@ -67,6 +67,11 @@ export function toCcDefraReport(documentNumber: string, correlationId: string, s
       result.documentUri = `${getConfig().externalAppUrl}/qr/export-certificates/${catchCert.documentUri}`;
    }
 
+   if (catchCert.catchSubmission) {
+      result.catchReference = catchCert.catchSubmission.reference;
+      result.rejectedReason = catchCert.catchSubmission.faultString;
+   }
+
    const exportData = catchCert.exportData;
 
    if (!exportData) {
@@ -116,9 +121,11 @@ export function toCcDefraReport(documentNumber: string, correlationId: string, s
       result.exportedTo = exportData.transportation.exportedTo;
       result.pointOfDestination = exportData.pointOfDestination || exportData.transportation.pointOfDestination;
    }
-   if(exportData.pointOfDestination) {
+
+   if (exportData.pointOfDestination) {
       result.pointOfDestination = exportData.pointOfDestination;
    }
+
    if (shouldAddTransportations(exportData)) {
       result.transportations = exportData.transportations.map((transportation) => toTransportations(transportation));
       result.exportedFrom = exportData.exportedFrom;
