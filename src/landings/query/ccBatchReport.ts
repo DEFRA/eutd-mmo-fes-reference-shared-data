@@ -55,8 +55,8 @@ const provideLandingBreakdown = (species, landingAggregatedItemBreakdown) => {
   const state = `state: ${landingAggregatedItemBreakdown.state}, `;
   const estweightPlusTolerance = `estimate weight plus tolerance: ${landingAggregatedItemBreakdown.liveWeight + landingAggregatedItemBreakdown.liveWeight * 0.1}, `
   return `species: ${species}, ` +
-    `${(landingAggregatedItemBreakdown.presentation !== undefined) ? presentation : ''}` +
-    `${(landingAggregatedItemBreakdown.state !== undefined) ? state : ''}` +
+    `${(landingAggregatedItemBreakdown.presentation === undefined) ? '' : presentation}` +
+    `${(landingAggregatedItemBreakdown.state === undefined) ? '' : state}` +
     `factor: ${landingAggregatedItemBreakdown.factor}, ` +
     `${(landingAggregatedItemBreakdown.isEstimate) ? 'estimate weight' : 'landed weight'}: ${landingAggregatedItemBreakdown.weight}, ` +
     `${(landingAggregatedItemBreakdown.isEstimate) ? 'estimate live weight' : 'live weight'}: ${landingAggregatedItemBreakdown.liveWeight}, ` +
