@@ -246,4 +246,6 @@ export interface IDefraValidationCatchCertificate {
     clonedFrom?:            string;
     landingsCloned?:        boolean;
     parentDocumentVoid?:    boolean;
+    catchReference?:        string;
+    rejectedReason?:        string;
 }

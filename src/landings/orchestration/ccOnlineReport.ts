@@ -5,7 +5,7 @@ import { landingExists } from '../transformations/dynamicsValidation';
 import { LandingStatusType } from '../types';
 
 export function getLandingsFromCatchCertificate(catchCertificate, reportingNewLandings = false) {
-  return [].concat(...catchCertificate.exportData.products.map(product =>
+  return catchCertificate.exportData.products.map(product =>
     product.caughtBy.reduce((plnAndDateLanded, landing) =>
     (landing.vesselOverriddenByAdmin && !reportingNewLandings ? plnAndDateLanded : [
       ...plnAndDateLanded, {
@@ -23,7 +23,7 @@ export function getLandingsFromCatchCertificate(catchCertificate, reportingNewLa
         riskScore: landing.riskScore,
         isSpeciesRiskEnabled: landing.isSpeciesRiskEnabled
       }
-    ]), [])))
+    ]), [])).flat()
 }
 
 export function shouldIncludeLanding(rssLanding) {

@@ -310,7 +310,9 @@ describe('Mapping data for DEFRA Central Reporting HUB', () => {
           }]
         }, null],
         _correlationId: 'some-uuid-correlation-id',
-        requestedByAdmin: false
+        requestedByAdmin: false,
+        catchReference: 'CATCH.CC.GB.0000056',
+        rejectedReason: 'Some business rules are not met'
       });
     });
 
@@ -1081,11 +1083,13 @@ describe('Mapping data for DEFRA Central Reporting HUB', () => {
       expect(res).toEqual({
         documentType: "CatchCertificate",
         documentNumber: 'GBR-2020-CC-1BC924FCF',
+        catchReference: "CATCH.CC.GB.0000056",
         clonedFrom: "GBR-2023-CC-C3A82642B",
         landingsCloned: false,
         parentDocumentVoid: false,
         status: DocumentStatuses.Draft,
         userReference: exampleCc.userReference,
+        rejectedReason: "Some business rules are not met",
         created: {
           id: 'ABCD-EFGH-IJKL-MNOP-QRST-UVWX-YZ12',
           email: 'foo@foo.com',
@@ -2847,7 +2851,20 @@ const exampleCc: IDocument = {
     "investigator": "Chris Waugh",
     "status": "CLOSED_NFA"
   },
-  "numberOfFailedAttempts": 5
+  "numberOfFailedAttempts": 5,
+  "catchSubmission": {
+    "reference": "CATCH.CC.GB.0000056",
+    "status": "FAILURE",
+    "faultCode": "S:Client",
+    "faultString": "Some business rules are not met",
+    "validationErrors": [
+      {
+        "id": "MOTROAREV-LICENCECOUNTRYCODE-MANDATORY",
+        "message": "Must not be empty.",
+        "field": "[en] mot.road.revision.licence.country.code"
+      }
+    ]
+  }
 }
 
 const correlationId = 'some-uuid-correlation-id';
