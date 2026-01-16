@@ -67,11 +67,6 @@ export function toCcDefraReport(documentNumber: string, correlationId: string, s
       result.documentUri = `${getConfig().externalAppUrl}/qr/export-certificates/${catchCert.documentUri}`;
    }
 
-   if (catchCert.catchSubmission) {
-      result.catchReference = catchCert.catchSubmission.reference;
-      result.rejectedReason = catchCert.catchSubmission.faultString;
-   }
-
    const exportData = catchCert.exportData;
 
    if (!exportData) {

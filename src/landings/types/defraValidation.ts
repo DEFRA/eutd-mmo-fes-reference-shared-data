@@ -248,4 +248,5 @@ export interface IDefraValidationCatchCertificate {
     parentDocumentVoid?:    boolean;
     catchReference?:        string;
     rejectedReason?:        string;
+    catchStatus?:           string;
 }
