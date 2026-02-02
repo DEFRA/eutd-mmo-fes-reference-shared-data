@@ -39,7 +39,8 @@ export const getCertificateByDocumentNumberWithNumberOfFailedAttemptsQuery = (do
           userReference: '$userReference',
           clonedFrom: '$clonedFrom',
           landingsCloned: '$landingsCloned',
-          parentDocumentVoid: '$parentDocumentVoid'
+          parentDocumentVoid: '$parentDocumentVoid',
+          catchSubmission: '$catchSubmission',
         },
         failedOnlineCertificates: { $addToSet: '$failedOnlineCertificates.createdAt' }
       }
@@ -59,7 +60,8 @@ export const getCertificateByDocumentNumberWithNumberOfFailedAttemptsQuery = (do
         numberOfFailedAttempts: { $size: '$failedOnlineCertificates' },
         clonedFrom: '$_id.clonedFrom',
         landingsCloned: '$_id.landingsCloned',
-        parentDocumentVoid: '$_id.parentDocumentVoid'
+        parentDocumentVoid: '$_id.parentDocumentVoid',
+        catchSubmission: '$_id.catchSubmission',
       }
     }
   ];

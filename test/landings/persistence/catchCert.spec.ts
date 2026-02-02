@@ -48,7 +48,8 @@ describe('when querying the exportCertificates collection for catch certs with f
             userReference: '$userReference',
             clonedFrom: '$clonedFrom',
             landingsCloned: '$landingsCloned',
-            parentDocumentVoid: '$parentDocumentVoid'
+            parentDocumentVoid: '$parentDocumentVoid',
+            catchSubmission: '$catchSubmission',
           },
           failedOnlineCertificates: { $addToSet: '$failedOnlineCertificates.createdAt' }
         }
@@ -68,7 +69,8 @@ describe('when querying the exportCertificates collection for catch certs with f
           numberOfFailedAttempts: { $size: '$failedOnlineCertificates' },
           clonedFrom: '$_id.clonedFrom',
           landingsCloned: '$_id.landingsCloned',
-          parentDocumentVoid: '$_id.parentDocumentVoid'
+          parentDocumentVoid: '$_id.parentDocumentVoid',
+          catchSubmission: '$_id.catchSubmission',
         }
       }
     ];
