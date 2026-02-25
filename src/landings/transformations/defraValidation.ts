@@ -207,7 +207,8 @@ export function toTransportation(transportation): CertificateTransport {
             registration: transportation.registrationNumber,
             exportLocation: transportation.departurePlace,
             exportDate: transportation.exportDate,
-            pointOfDestination: transportation.pointOfDestination
+            pointOfDestination: transportation.pointOfDestination,
+            containerId: transportation.containerNumbers,
          }
       case TRANSPORT_VEHICLE_TRAIN:
          return {
@@ -215,13 +216,14 @@ export function toTransportation(transportation): CertificateTransport {
             billNumber: transportation.railwayBillNumber,
             exportLocation: transportation.departurePlace,
             exportDate: transportation.exportDate,
-            pointOfDestination: transportation.pointOfDestination
+            pointOfDestination: transportation.pointOfDestination,
+            containerId: transportation.containerNumbers,
          }
       case TRANSPORT_VEHICLE_PLANE:
          return {
             modeofTransport: transportation.vehicle,
             flightNumber: transportation.flightNumber,
-            containerId: transportation.containerNumber,
+            containerId: transportation.containerNumbers,
             exportLocation: transportation.departurePlace,
             exportDate: transportation.exportDate,
             pointOfDestination: transportation.pointOfDestination
@@ -231,7 +233,7 @@ export function toTransportation(transportation): CertificateTransport {
             modeofTransport: TRANSPORT_VEHICLE_VESSEL,
             name: transportation.vesselName,
             flag: transportation.flagState,
-            containerId: transportation.containerNumber,
+            containerId: transportation.containerNumbers,
             exportLocation: transportation.departurePlace,
             exportDate: transportation.exportDate,
             pointOfDestination: transportation.pointOfDestination
@@ -281,7 +283,7 @@ export function toTransportations(transportation): CatchCertificateTransport {
             modeofTransport: transportation.vehicle,
             freightBillNumber: transportation.freightBillNumber,
             flightNumber: transportation.flightNumber,
-            containerId: transportation.containerNumber,
+            containerId: transportation.containerNumbers,
             exportLocation: transportation.departurePlace,
             transportDocuments,
             pointOfDestination: transportation.pointOfDestination
@@ -293,7 +295,7 @@ export function toTransportations(transportation): CatchCertificateTransport {
             freightBillNumber: transportation.freightBillNumber,
             name: transportation.vesselName,
             flag: transportation.flagState,
-            containerId: transportation.containerNumber,
+            containerId: transportation.containerNumbers,
             exportLocation: transportation.departurePlace,
             transportDocuments,
             pointOfDestination: transportation.pointOfDestination
