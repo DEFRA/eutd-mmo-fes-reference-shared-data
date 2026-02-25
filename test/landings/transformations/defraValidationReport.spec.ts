@@ -1020,7 +1020,7 @@ describe('Mapping data for DEFRA Central Reporting HUB', () => {
             vehicle: 'plane',
             freightBillNumber: 'AIR789',
             flightNumber: 'LH890',
-            containerNumber: 'CONT123',
+            containerNumbers: 'CONT123',
             departurePlace: 'Manchester Airport',
             pointOfDestination: 'Frankfurt Airport Terminal 1',
             transportDocuments: [{
@@ -2550,7 +2550,7 @@ describe('Mapping data for DEFRA Central Reporting HUB', () => {
         const planeTransport = {
           vehicle: "plane",
           flightNumber: "BA078",
-          containerNumber: "1234",
+          containerNumbers: "1234",
           departurePlace: "Telford",
           exportDate: "30/05/2020"
         };
@@ -2575,7 +2575,7 @@ describe('Mapping data for DEFRA Central Reporting HUB', () => {
           vehicle: "containerVessel",
           vesselName: "WIRON 5",
           flagState: "UK",
-          containerNumber: "1234",
+          containerNumbers: "1234",
           departurePlace: "Telford",
           exportDate: "30/05/2020"
         };
