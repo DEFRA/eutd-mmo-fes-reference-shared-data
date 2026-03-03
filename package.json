@@ -86,11 +86,6 @@
       }
     }
   },
-  "overrides": {
-    "@typescript-eslint/typescript-estree": {
-      "minimatch": "^9.0.7"
-    }
-  },
   "prettier": {
     "singleQuote": true
   }
