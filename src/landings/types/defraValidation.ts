@@ -85,6 +85,7 @@ interface ModeOfTransport {
     exportLocation?: string;
     exportDate?: string;
     pointOfDestination?: string;
+    containerId?: string;
 }
 
 export interface Truck extends ModeOfTransport {
