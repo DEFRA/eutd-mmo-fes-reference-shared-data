@@ -10,6 +10,9 @@ trigger:
       - 'develop'
       - 'feature/*'
       - 'epic/*'
+  paths:
+    exclude:
+      - '.github/**'
 pr:
   branches:
     include:
