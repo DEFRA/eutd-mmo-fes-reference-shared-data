@@ -18,6 +18,9 @@ pr:
     include:
       - 'main'
       - 'develop'
+  paths:
+    exclude:
+      - '.github/**'
 
 resources:
   repositories:
