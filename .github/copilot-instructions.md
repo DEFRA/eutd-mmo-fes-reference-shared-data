@@ -25,7 +25,7 @@ This is a TypeScript library for DEFRA's Marine Management Organisation (MMO) th
 ## Development Patterns
 
 ### Testing Requirements
-- **100% code coverage** enforced by Jest configuration
+- **90% code coverage** enforced by Jest configuration
 - Mock Azure Service Bus extensively using class-based mocks
 - Test both success and error paths, especially for external integrations
 - Use descriptive test names: `should add message to queue when enableReportToQueue is true`
@@ -75,3 +75,7 @@ logger.error(`[SERVICE][ACTION][ERROR][CONTEXT][${error.stack || error}]`);
 - Use `npm run test:watch` for development
 - Mock external dependencies at module level, not inline
 - Test file naming: `*.spec.ts` for unit tests, `*.jest.spec.ts` for complex mocks
+
+## Skills
+
+Use `/develop` for implementation, coding, and research tasks. Use `/unit-tests` for writing tests, coverage, and SonarQube issues.
