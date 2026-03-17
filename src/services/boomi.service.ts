@@ -4,6 +4,7 @@ import { getConfig } from '../config';
 import { CertificateAddress } from "../landings/types/defraValidation";
 import { SSL_OP_LEGACY_SERVER_CONNECT } from "constants";
 import logger from '../logger';
+import { performance } from 'node:perf_hooks';
 
 const https = require('https');
 const moment = require('moment');
@@ -182,9 +183,34 @@ type resourceType = 'landing' | 'catchActivity' | 'salesNotes' | 'eLogs' | 'addr
 
 export class BoomiService {
 
+  private static readonly oauthTokenCache = new Map<resourceType, { token: IOAuthResponse; expiresAtMs: number }>();
+  private static readonly oauthTokenInFlight = new Map<resourceType, Promise<IOAuthResponse>>();
+
   private static readonly httpsAgent = new https.Agent({
-    secureOptions: SSL_OP_LEGACY_SERVER_CONNECT
+    secureOptions: SSL_OP_LEGACY_SERVER_CONNECT,
+    keepAlive: true
   });
+
+  private static readonly oauthExpirySafetyWindowMs = 30_000;
+  private static readonly oauthTimeoutMs = 10_000;
+  private static readonly submitTimeoutMs = 20_000;
+  private static readonly getTimeoutMs = 20_000;
+
+  private static readonly addressCacheTtlMs = 5 * 60_000;
+  private static readonly addressCache = new Map<string, { value: CertificateAddress[]; expiresAtMs: number }>();
+
+  private static readonly maxRetries = 2;
+  private static readonly retryBaseDelayMs = 500;
+
+  private static isTransientError(e: any): boolean {
+    if (!e.response) return true; // network error / timeout
+    const status = e.response.status;
+    return status === 429 || status === 502 || status === 503 || status === 504;
+  }
+
+  private static delay(ms: number): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
 
   static callingURL(params: any, resourceType: resourceType) {
     return {
@@ -220,6 +246,7 @@ export class BoomiService {
 
       logger.info(`[BOOMI-SERVICE][${resourceType}][CALLING-URL][${callingUrl}]`);
 
+      const getStart = performance.now();
       const response: AxiosResponse = await axios.get(
         callingUrl,
         {
@@ -227,9 +254,12 @@ export class BoomiService {
             Authorization: `${tokenResponse.token_type} ${tokenResponse.access_token}`,
             ...headers
           },
-          httpsAgent: this.httpsAgent
+          httpsAgent: this.httpsAgent,
+          timeout: this.getTimeoutMs
         }
       );
+
+      logger.info(`[PERF][BOOMI][${resourceType}] getRequest=${Math.round(performance.now() - getStart)}ms`);
 
       logger.info(`[BOOMI-SERVICE][${resourceType}][RESPONSE-DATA]${JSON.stringify(response.data)}`);
 
@@ -357,6 +387,13 @@ export class BoomiService {
   }
 
   static async getAddresses(postcode: string): Promise<CertificateAddress[]> {
+    const cacheKey = (postcode || '').trim().toUpperCase();
+    const cached = this.addressCache.get(cacheKey);
+    if (cached && cached.expiresAtMs > Date.now()) {
+      logger.info(`[BOOMI][GET-ADDRESS][CACHE-HIT][${cacheKey}]`);
+      return cached.value;
+    }
+
     const config = getConfig();
     const reqHeaders = {
       UserID: config.boomiAuthUser,
@@ -367,7 +404,10 @@ export class BoomiService {
 
     const result = await this.sendRequest('address', reqHeaders, config.boomiUrl, { postcode: postcode });
 
-    return result ? this.mapAddresses(result) : [];
+    const mapped = result ? this.mapAddresses(result) : [];
+    this.addressCache.set(cacheKey, { value: mapped, expiresAtMs: Date.now() + this.addressCacheTtlMs });
+
+    return mapped;
   }
 
   static readonly mapAddresses = (apiResponse: IBoomiAddressResponse | undefined): CertificateAddress[] => {
@@ -409,6 +449,18 @@ export class BoomiService {
   static async getEntraOAuthToken(resourceType: resourceType): Promise<IOAuthResponse> {
     const config = getConfig();
 
+    const cached = this.oauthTokenCache.get(resourceType);
+    if (cached && cached.expiresAtMs > Date.now() + this.oauthExpirySafetyWindowMs) {
+      logger.info(`[BOOMI-SERVICE][${resourceType}][OAUTH-TOKEN-CACHE-HIT]`);
+      return cached.token;
+    }
+
+    const inFlight = this.oauthTokenInFlight.get(resourceType);
+    if (inFlight) {
+      logger.info(`[BOOMI-SERVICE][${resourceType}][OAUTH-TOKEN-IN-FLIGHT]`);
+      return await inFlight;
+    }
+
     logger.info(`[BOOMI-SERVICE][${resourceType}][REQUESTING-OAUTH-TOKEN]`);
 
     const tokenRequest: IOAuthRequest = {
@@ -422,23 +474,37 @@ export class BoomiService {
     const data = querystring.stringify(tokenRequest);
 
     try {
-      const tokenResponse: AxiosResponse<IOAuthResponse> = await axios.post<IOAuthResponse>(
-        tokenUrl,
-        data,
-        {
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded'
-          },
-          httpsAgent: this.httpsAgent
-        }
-      );
+      const tokenPromise = (async () => {
+        const start = performance.now();
+        const tokenResponse: AxiosResponse<IOAuthResponse> = await axios.post<IOAuthResponse>(
+          tokenUrl,
+          data,
+          {
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            httpsAgent: this.httpsAgent,
+            timeout: this.oauthTimeoutMs
+          }
+        );
 
-      logger.info(`[BOOMI-SERVICE][${resourceType}][OAUTH-TOKEN-RECEIVED]`);
-      return tokenResponse.data;
+        const token = tokenResponse.data;
+        const expiresAtMs = Date.now() + (token.expires_in * 1000);
+        this.oauthTokenCache.set(resourceType, { token, expiresAtMs });
+
+        logger.info(`[BOOMI-SERVICE][${resourceType}][OAUTH-TOKEN-RECEIVED]`);
+        logger.info(`[PERF][BOOMI][${resourceType}] oauthToken=${Math.round(performance.now() - start)}ms`);
+        return token;
+      })();
+
+      this.oauthTokenInFlight.set(resourceType, tokenPromise);
+      return await tokenPromise;
 
     } catch (e) {
       logger.error(`[BOOMI-SERVICE][${resourceType}][ERROR][UNABLE-TO-GET-OAUTH-TOKEN][${e.stack || e}]`);
       throw new Error(`Failed to get ${resourceType} OAuth token: ${e.message || e}`);
+    } finally {
+      this.oauthTokenInFlight.delete(resourceType);
     }
   }
 
@@ -470,22 +536,45 @@ export class BoomiService {
       logger.info(`[BOOMI-SERVICE][${resourceType}][CALLING-URL][${apiUrl}]`);
       logger.debug(`[BOOMI-SERVICE][${resourceType}][PAYLOAD]${JSON.stringify(payload)}`);
 
-      const response: AxiosResponse<any> = await axios.post<any>(
-        apiUrl,
-        payload,
-        {
-          headers: {
-            'Authorization': `${tokenData.token_type} ${tokenData.access_token}`,
-            'Content-Type': 'application/json'
-          },
-          httpsAgent: this.httpsAgent
+      let lastError: any;
+      for (let attempt = 0; attempt <= this.maxRetries; attempt++) {
+        try {
+          if (attempt > 0) {
+            const delayMs = this.retryBaseDelayMs * Math.pow(2, attempt - 1);
+            logger.info(`[BOOMI-SERVICE][${resourceType}][RETRY] attempt=${attempt}/${this.maxRetries} delayMs=${delayMs}`);
+            await this.delay(delayMs);
+          }
+
+          const submitStart = performance.now();
+          const response: AxiosResponse<any> = await axios.post<any>(
+            apiUrl,
+            payload,
+            {
+              headers: {
+                'Authorization': `${tokenData.token_type} ${tokenData.access_token}`,
+                'Content-Type': 'application/json'
+              },
+              httpsAgent: this.httpsAgent,
+              timeout: this.submitTimeoutMs
+            }
+          );
+
+          logger.info(`[PERF][BOOMI][${resourceType}] submitDocument=${Math.round(performance.now() - submitStart)}ms documentType=${params.documentType} attempt=${attempt}`);
+
+          logger.info(`[BOOMI-SERVICE][${resourceType}][RESPONSE-STATUS][${response.status}]`);
+          logger.info(`[BOOMI-SERVICE][${resourceType}][RESPONSE-DATA]${JSON.stringify(response.data)}`);
+
+          return response.data;
+        } catch (retryErr) {
+          lastError = retryErr;
+          if (!this.isTransientError(retryErr) || attempt === this.maxRetries) {
+            break;
+          }
+          logger.warn(`[BOOMI-SERVICE][${resourceType}][TRANSIENT-ERROR] attempt=${attempt} ${retryErr.message || retryErr}`);
         }
-      );
+      }
 
-      logger.info(`[BOOMI-SERVICE][${resourceType}][RESPONSE-STATUS][${response.status}]`);
-      logger.info(`[BOOMI-SERVICE][${resourceType}][RESPONSE-DATA]${JSON.stringify(response.data)}`);
-
-      return response.data;
+      throw lastError;
 
     } catch (e) {
       logger.error(`[BOOMI-SERVICE][${resourceType}][ERROR] ${e}`);
