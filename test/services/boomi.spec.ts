@@ -22,6 +22,12 @@ const { v4: uuid } = require('uuid');
 jest.mock('uuid');
 jest.mock('axios');
 
+const clearBoomiOAuthCache = () => {
+  ((BoomiService as unknown) as any).oauthTokenCache?.clear?.();
+  ((BoomiService as unknown) as any).oauthTokenInFlight?.clear?.();
+  ((BoomiService as unknown) as any).addressCache?.clear?.();
+};
+
 describe('The boomi service', () => {
 
   let mockSendRequest: jest.SpyInstance;
@@ -29,6 +35,8 @@ describe('The boomi service', () => {
 
   beforeEach(() => {
     jest.resetModules();
+
+    clearBoomiOAuthCache();
 
     uuid.mockImplementation(() => 'some-uuid-correlation-id');
     mockSendRequest = jest.spyOn(BoomiService, 'sendRequest');
@@ -270,6 +278,8 @@ describe('getAddresses', () => {
   let mockConfig: jest.SpyInstance;
 
   beforeEach(() => {
+    clearBoomiOAuthCache();
+
     mockSendRequest = jest.spyOn(BoomiService, 'sendRequest');
     mockSendRequest.mockResolvedValue(null);
 
@@ -491,6 +501,8 @@ describe('call sendRequest', () => {
   let mockConfig: jest.SpyInstance;
 
   beforeEach(() => {
+    clearBoomiOAuthCache();
+
     mockAxiosPost = jest.spyOn(axios, 'post');
     mockAxiosPost.mockResolvedValue({
       status: 200,
@@ -620,6 +632,8 @@ describe('CATCH API Integration (FI0-10355)', () => {
   beforeEach(() => {
     mockLoggerInfo = jest.spyOn(logger, 'info').mockImplementation(() => { });
     mockLoggerError = jest.spyOn(logger, 'error').mockImplementation(() => { });
+
+    clearBoomiOAuthCache();
   });
 
   afterEach(() => {
