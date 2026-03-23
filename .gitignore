@@ -3,6 +3,7 @@ dist/
 node_modules/
 service_bus/
 .env
+.npmrc
 .DS_Store
 test-results/
 .idea/
