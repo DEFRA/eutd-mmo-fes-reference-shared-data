@@ -29,7 +29,7 @@ describe('the actual catchCertificate report', () => {
 
   beforeEach(() => {
     mockGetSpeciesAlias = jest.fn();
-    mockGetSpeciesAlias.mockImplementation(() => undefined ?? []);
+    mockGetSpeciesAlias.mockImplementation(() => []);
   })
 
   afterEach(() => {
