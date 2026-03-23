@@ -1,6 +1,6 @@
 {
   "name": "mmo-shared-reference-data",
-  "version": "1.3.3",
+  "version": "1.3.4",
   "description": "Shared repo which holds common code of reference data reader and batch data repo",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
