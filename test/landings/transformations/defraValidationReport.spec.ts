@@ -380,7 +380,7 @@ describe('Mapping data for DEFRA Central Reporting HUB', () => {
         "dateCreated": new Date("2020-06-24T10:39:32.000Z"),
         "documentNumber": "GBR-2020-CC-1BC924FCF",
         "documentType": "CatchCertificate",
-        "documentUri": "undefined/qr/export-certificates/_44fd226f-598f-4615-930f-716b2762fea4.pdf",
+        "documentUri": `${Config.getConfig().externalAppUrl}/qr/export-certificates/_44fd226f-598f-4615-930f-716b2762fea4.pdf`,
         "failedSubmissions": 5,
         "landingsCloned": false,
         "parentDocumentVoid": false,
