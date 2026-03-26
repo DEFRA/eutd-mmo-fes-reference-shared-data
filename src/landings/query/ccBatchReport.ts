@@ -51,12 +51,12 @@ export const ccBatchReport = (
     })
 }
 const provideLandingBreakdown = (species, landingAggregatedItemBreakdown) => {
-  const presentation = `presentation: ${landingAggregatedItemBreakdown.presentation}, `;
-  const state = `state: ${landingAggregatedItemBreakdown.state}, `;
+  const presentation = landingAggregatedItemBreakdown.presentation === undefined ? '' : `presentation: ${landingAggregatedItemBreakdown.presentation}, `;
+  const state = landingAggregatedItemBreakdown.state === undefined ? '' : `state: ${landingAggregatedItemBreakdown.state}, `;
   const estweightPlusTolerance = `estimate weight plus tolerance: ${landingAggregatedItemBreakdown.liveWeight + landingAggregatedItemBreakdown.liveWeight * 0.1}, `
   return `species: ${species}, ` +
-    `${(landingAggregatedItemBreakdown.presentation === undefined) ? '' : presentation}` +
-    `${(landingAggregatedItemBreakdown.state === undefined) ? '' : state}` +
+    presentation +
+    state +
     `factor: ${landingAggregatedItemBreakdown.factor}, ` +
     `${(landingAggregatedItemBreakdown.isEstimate) ? 'estimate weight' : 'landed weight'}: ${landingAggregatedItemBreakdown.weight}, ` +
     `${(landingAggregatedItemBreakdown.isEstimate) ? 'estimate live weight' : 'live weight'}: ${landingAggregatedItemBreakdown.liveWeight}, ` +

@@ -272,7 +272,7 @@ export class BoomiService {
 
       logger.error(`[BOOMI-SERVICE][${resourceType}][API][ERROR] ${e}`);
 
-      if (!e.response && typeof e.response === "undefined") {
+      if (!e.response && e.response === undefined) {
         throw new Error(e)
       }
       else if (e.response) {
