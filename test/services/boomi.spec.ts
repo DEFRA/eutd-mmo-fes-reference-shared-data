@@ -22,6 +22,12 @@ const { v4: uuid } = require('uuid');
 jest.mock('uuid');
 jest.mock('axios');
 
+const clearBoomiOAuthCache = () => {
+  ((BoomiService as unknown) as any).oauthTokenCache?.clear?.();
+  ((BoomiService as unknown) as any).oauthTokenInFlight?.clear?.();
+  ((BoomiService as unknown) as any).addressCache?.clear?.();
+};
+
 describe('The boomi service', () => {
 
   let mockSendRequest: jest.SpyInstance;
@@ -29,6 +35,8 @@ describe('The boomi service', () => {
 
   beforeEach(() => {
     jest.resetModules();
+
+    clearBoomiOAuthCache();
 
     uuid.mockImplementation(() => 'some-uuid-correlation-id');
     mockSendRequest = jest.spyOn(BoomiService, 'sendRequest');
@@ -270,6 +278,8 @@ describe('getAddresses', () => {
   let mockConfig: jest.SpyInstance;
 
   beforeEach(() => {
+    clearBoomiOAuthCache();
+
     mockSendRequest = jest.spyOn(BoomiService, 'sendRequest');
     mockSendRequest.mockResolvedValue(null);
 
@@ -491,6 +501,8 @@ describe('call sendRequest', () => {
   let mockConfig: jest.SpyInstance;
 
   beforeEach(() => {
+    clearBoomiOAuthCache();
+
     mockAxiosPost = jest.spyOn(axios, 'post');
     mockAxiosPost.mockResolvedValue({
       status: 200,
@@ -620,6 +632,8 @@ describe('CATCH API Integration (FI0-10355)', () => {
   beforeEach(() => {
     mockLoggerInfo = jest.spyOn(logger, 'info').mockImplementation(() => { });
     mockLoggerError = jest.spyOn(logger, 'error').mockImplementation(() => { });
+
+    clearBoomiOAuthCache();
   });
 
   afterEach(() => {
@@ -1149,4 +1163,176 @@ describe('CATCH API Integration (FI0-10355)', () => {
       expect(mockLoggerError).toHaveBeenCalledWith('[BOOMI-SERVICE][EU-UPGRADE-CALLBACK][ERROR][Cannot read properties of null (reading \'0\')]');
     });
   });
+});
+
+// Additional migrated lightweight tests from test/boomi.service.test.ts
+describe('Migrated BoomiService lightweight tests', () => {
+  const mockedAxios = jest.mocked(axios, { shallow: true });
+
+  beforeEach(() => {
+    jest.resetAllMocks();
+    // default config used by these migrated tests
+    jest.spyOn(config, 'getConfig').mockReturnValue({
+      boomiAuthUser: 'test-user',
+      boomiUrl: 'https://boomi.test',
+      boomiApiOauthClientId: 'cid',
+      boomiApiOauthClientSecret: 'csecret',
+      boomiApiOauthTokenUrl: 'https://token.test',
+      boomiLandingApiOauthScope: 'scope',
+      boomiAddressLookupApiOauthScope: 'scope',
+      boomiCatchApiOauthScope: 'scope'
+    } as any);
+  });
+
+  test('mapAddresses maps API response correctly (migrated)', () => {
+    const apiResponse = {
+      results: [
+        {
+          Address: {
+            AddressLine: '1 Test St',
+            BuildingNumber: '1',
+            SubBuildingName: 'Flat 1',
+            BuildingName: 'Test Building',
+            Street: 'Test Street',
+            Town: 'Testtown',
+            County: 'Testshire',
+            Postcode: 'TS1 1ST',
+            Country: 'UK'
+          }
+        }
+      ]
+    } as any;
+
+    const mapped = BoomiService.mapAddresses(apiResponse);
+    expect(mapped).toHaveLength(1);
+    expect(mapped[0].address_line).toBe('1 Test St');
+    expect(mapped[0].building_number).toBe('1');
+    expect(mapped[0].sub_building_name).toBe('Flat 1');
+    expect(mapped[0].postCode).toBe('TS1 1ST');
+    expect(mapped[0].city).toBe('Testtown');
+  });
+
+  test('getAddresses caches results and calls sendRequest once (migrated)', async () => {
+    const apiResponse = { results: [] };
+    const spySend = jest.spyOn(BoomiService as any, 'sendRequest').mockResolvedValue(apiResponse);
+
+    const first = await BoomiService.getAddresses('TS1 1ST');
+    const second = await BoomiService.getAddresses('ts1 1st'); // different casing should hit cache
+
+    expect(spySend).toHaveBeenCalledTimes(1);
+    expect(first).toEqual([]);
+    expect(second).toEqual([]);
+  });
+
+  test('getEntraOAuthToken caches token and handles in-flight requests (migrated)', async () => {
+    // mock axios.post to return token
+    (mockedAxios.post as jest.Mock).mockResolvedValueOnce({ data: { token_type: 'Bearer', expires_in: 3600, ext_expires_in: 3600, access_token: 'abc' } });
+
+    const p1 = BoomiService.getEntraOAuthToken('catchSubmit' as any);
+    const p2 = BoomiService.getEntraOAuthToken('catchSubmit' as any);
+
+    const [t1, t2] = await Promise.all([p1, p2]);
+
+    expect(mockedAxios.post).toHaveBeenCalledTimes(1);
+    expect(t1.access_token).toBe('abc');
+    expect(t2.access_token).toBe('abc');
+
+    // subsequent call should hit cache (no more axios.post)
+    const t3 = await BoomiService.getEntraOAuthToken('catchSubmit' as any);
+    expect(mockedAxios.post).toHaveBeenCalledTimes(1);
+    expect(t3.access_token).toBe('abc');
+  });
+
+  test('processEuUpgradeCallback handles success response (migrated)', () => {
+    const callbackData: any = {
+      Envelope: {
+        Body: {
+          SubmitCatchResponse: {
+            SPSAcknowledgement: {
+              SPSAcknowledgementDocument: {
+                IssueDateTime: { DateTime: '2026-03-26T12:00:00Z' },
+                StatusCode: { text: '200', '@name': 'OK' },
+                ReasonInformation: 'All good',
+                fesDocNumber: 'FES123',
+                ReferenceSPSReferencedDocument: [
+                  {
+                    ID: { text: 'REF123' },
+                    AttachmentBinaryObject: { '@uri': 'https://example.com/doc.pdf' }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    };
+
+    const res = BoomiService.processEuUpgradeCallback(callbackData);
+    expect(res.euCatchStatus).toBe('SUCCESS');
+    expect(res.documentNumber).toBe('FES123');
+    expect(res.euCatchReferenceNumber).toBe('REF123');
+    expect(res.euCatchUri).toBe('https://example.com/doc.pdf');
+    expect(res.euCatchStatusCode).toBe('200');
+    expect(res.euCatchStatusName).toBe('OK');
+  });
+
+  test('processEuUpgradeCallback handles fault response with validation errors (migrated)', () => {
+    const callbackData: any = {
+      Envelope: {
+        Body: {
+          Fault: {
+            fesDocNumber: 'FES999',
+            faultcode: 'Server',
+            faultstring: 'Validation failed',
+            detail: {
+              BusinessRulesValidationException: {
+                Error: [
+                  { ID: 'E1', Message: { text: 'Bad field' }, Field: { text: 'field1' } }
+                ]
+              }
+            }
+          }
+        }
+      }
+    };
+
+    const res = BoomiService.processEuUpgradeCallback(callbackData);
+    expect(res.euCatchStatus).toBe('FAILURE');
+    expect(res.documentNumber).toBe('FES999');
+    expect(res.validationErrors).toBeDefined();
+    expect(res.validationErrors?.[0].errorId).toBe('E1');
+  });
+
+  test('processEuUpgradeCallback handles pending/other top-level response (migrated)', () => {
+    const callbackData: any = {
+      CatchCertificateResponse: {
+        status: 'IN_PROGRESS',
+        fesDocNumber: 'FES555',
+        statusMessage: 'Queued'
+      }
+    };
+
+    const res = BoomiService.processEuUpgradeCallback(callbackData);
+    expect(res.euCatchStatus).toBe('IN_PROGRESS');
+    expect(res.documentNumber).toBe('FES555');
+    expect(res.euCatchStatusMessage).toBe('Queued');
+  });
+
+  test('sendDocumentToBoomi retries on transient error and succeeds (migrated)', async () => {
+    // ensure getEntraOAuthToken returns token without calling axios
+    jest.spyOn(BoomiService as any, 'getEntraOAuthToken').mockResolvedValue({ token_type: 'Bearer', access_token: 'abc', expires_in: 3600, ext_expires_in: 3600 });
+
+    // first call: transient 503 error, second call: success
+    const transientError = { response: { status: 503, statusText: 'Service Unavailable' }, message: '503' };
+    (mockedAxios.post as jest.Mock).mockRejectedValueOnce(transientError);
+    (mockedAxios.post as jest.Mock).mockResolvedValueOnce({ status: 200, data: { result: 'ok' } });
+
+    const payload = { any: 'payload' } as any;
+
+    const res = await BoomiService.sendDocumentToBoomi(payload, { documentType: 'CatchCertificate' }, 'catchSubmit' as any);
+
+    expect(mockedAxios.post).toHaveBeenCalled();
+    expect(res).toEqual({ result: 'ok' });
+  });
+
 });
