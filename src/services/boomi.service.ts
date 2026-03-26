@@ -1,12 +1,11 @@
 import axios, { AxiosResponse } from "axios";
-import querystring from 'querystring';
+import querystring from 'node:querystring';
 import { getConfig } from '../config';
 import { CertificateAddress } from "../landings/types/defraValidation";
-import { SSL_OP_LEGACY_SERVER_CONNECT } from "constants";
+import { SSL_OP_LEGACY_SERVER_CONNECT } from "node:constants";
 import logger from '../logger';
-import { performance } from 'node:perf_hooks';
 
-const https = require('https');
+const https = require('node:https');
 const moment = require('moment');
 const { v4: uuidv4 } = require('uuid');
 
@@ -246,7 +245,6 @@ export class BoomiService {
 
       logger.info(`[BOOMI-SERVICE][${resourceType}][CALLING-URL][${callingUrl}]`);
 
-      const getStart = performance.now();
       const response: AxiosResponse = await axios.get(
         callingUrl,
         {
@@ -259,7 +257,6 @@ export class BoomiService {
         }
       );
 
-      logger.info(`[PERF][BOOMI][${resourceType}] getRequest=${Math.round(performance.now() - getStart)}ms`);
 
       logger.info(`[BOOMI-SERVICE][${resourceType}][RESPONSE-DATA]${JSON.stringify(response.data)}`);
 
@@ -475,7 +472,6 @@ export class BoomiService {
 
     try {
       const tokenPromise = (async () => {
-        const start = performance.now();
         const tokenResponse: AxiosResponse<IOAuthResponse> = await axios.post<IOAuthResponse>(
           tokenUrl,
           data,
@@ -493,7 +489,6 @@ export class BoomiService {
         this.oauthTokenCache.set(resourceType, { token, expiresAtMs });
 
         logger.info(`[BOOMI-SERVICE][${resourceType}][OAUTH-TOKEN-RECEIVED]`);
-        logger.info(`[PERF][BOOMI][${resourceType}] oauthToken=${Math.round(performance.now() - start)}ms`);
         return token;
       })();
 
@@ -545,7 +540,6 @@ export class BoomiService {
             await this.delay(delayMs);
           }
 
-          const submitStart = performance.now();
           const response: AxiosResponse<any> = await axios.post<any>(
             apiUrl,
             payload,
@@ -559,7 +553,7 @@ export class BoomiService {
             }
           );
 
-          logger.info(`[PERF][BOOMI][${resourceType}] submitDocument=${Math.round(performance.now() - submitStart)}ms documentType=${params.documentType} attempt=${attempt}`);
+          
 
           logger.info(`[BOOMI-SERVICE][${resourceType}][RESPONSE-STATUS][${response.status}]`);
           logger.info(`[BOOMI-SERVICE][${resourceType}][RESPONSE-DATA]${JSON.stringify(response.data)}`);
