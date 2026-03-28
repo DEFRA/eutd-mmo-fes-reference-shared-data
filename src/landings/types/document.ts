@@ -155,23 +155,25 @@ interface BasicTransportDetails {
 
 interface Train extends BasicTransportDetails {
   railwayBillNumber: string,
+  containerNumbers?: string
 }
 
 interface Plane extends BasicTransportDetails {
   flightNumber: string,
-  containerNumber: string
+  containerNumbers: string
 }
 
 interface ContainerVessel extends BasicTransportDetails {
   vesselName: string,
   flagState: string,
-  containerNumber: string
+  containerNumbers: string
 }
 
 interface Truck extends BasicTransportDetails {
   cmr?: boolean,
   nationalityOfVehicle?: string,
-  registrationNumber?: string
+  registrationNumber?: string,
+  containerNumbers?: string
 }
 
 export type Transport = Train | Plane | ContainerVessel | Truck;
