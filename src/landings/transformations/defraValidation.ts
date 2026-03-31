@@ -307,7 +307,7 @@ const hasLandingExists: (ccQuery: ICcQueryResult) => DefraCcLandingStatusType = 
    let output: DefraCcLandingStatusType;
 
    if (ccQuery.isSpeciesExists) {
-      const isOverusedAllCerts = ccQuery.isOverusedAllCerts && ccQuery.overUsedInfo.filter((documentNumber: string) => documentNumber !== ccQuery.documentNumber).length > 0;
+      const isOverusedAllCerts = ccQuery.isOverusedAllCerts && ccQuery.overUsedInfo.some((documentNumber: string) => documentNumber !== ccQuery.documentNumber);
       if (ccQuery.isOverusedThisCert && isOverusedAllCerts) {
          output = DefraCcLandingStatusType.ValidationFailure_WeightAndOveruse
       } else if (ccQuery.isOverusedThisCert) {

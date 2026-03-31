@@ -1,5 +1,5 @@
-import fs from 'fs';
-import path from 'path';
+import fs from 'node:fs';
+import path from 'node:path';
 import { ServiceBusClient, ServiceBusMessage, ServiceBusSender } from "@azure/service-bus";
 import logger from '../logger';
 
@@ -51,7 +51,7 @@ const callEnableReportToQueue = async (queueUrl: string, documentNumber: string,
 
 const writeToLocalFileSystem = (queueName: string, message: ServiceBusMessage) => {
   const filePath = `${__dirname}/../../../service_bus/`;
-  const subFolder = `${queueName.replace(/[.]/gi, '-')}`;
+  const subFolder = `${queueName.replaceAll('.', '-')}`;
   const fileName = message.sessionId || message.correlationId;
 
   try {

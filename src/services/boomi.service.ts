@@ -272,7 +272,7 @@ export class BoomiService {
 
       logger.error(`[BOOMI-SERVICE][${resourceType}][API][ERROR] ${e}`);
 
-      if (!e.response && typeof e.response === "undefined") {
+      if (!e.response && e.response === undefined) {
         throw new Error(e)
       }
       else if (e.response) {
@@ -361,7 +361,7 @@ export class BoomiService {
     const promises = [BoomiService.queryBoomiForLandingData({ landingDate: moment.utc(dateLanded).format('YYYY-MM-DD'), rssNumber }, getConfig(), transactionType)];
     const results = await Promise.all(promises);
 
-    return results.filter(_ => _);
+    return results.filter(Boolean);
 
   }
 
