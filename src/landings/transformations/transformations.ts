@@ -1,5 +1,5 @@
-const fs = require('fs');
-const path = require('path');
+const fs = require('node:fs');
+const path = require('node:path');
 
 const Ajv = require('ajv');
 const _ = require('lodash');
@@ -255,7 +255,7 @@ export function* unwindCatchCerts(catchCerts) {
 
 export function getLastAuditEvent(events: IAuditEvent[], eventType: string) {
   const matches = events.filter(_ => _.eventType === eventType);
-  return matches[matches.length - 1];
+  return matches.length > 0 ? matches[matches.length - 1] : undefined;
 }
 
 export function* mapCatchCerts(unwoundCatchCerts, licenceLookup) {

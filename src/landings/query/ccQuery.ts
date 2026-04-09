@@ -73,7 +73,7 @@ function enrichWithLandingData(params: { r: ICcQueryResult, queryTime: moment.Mo
     // if not then we have have a species mis match
     const speciesAlias = params.getSpeciesAliases(params.item.species);
     if (params.item.species in params.landingWeightBySpecies || speciesAlias.some((sa: string) => sa in params.landingWeightBySpecies)) {
-        const speciesAliasCode = params.item.species in params.landingWeightBySpecies ? undefined : speciesAlias.find((sa: string) => sa in params.landingWeightBySpecies);
+        const speciesAliasCode = (params.item.species in params.landingWeightBySpecies) ? undefined : speciesAlias.find((sa: string) => sa in params.landingWeightBySpecies);
         params.r.speciesAlias = speciesAliasCode ? 'Y' : 'N';
         params.r.speciesAnomaly = speciesAliasCode;
 
