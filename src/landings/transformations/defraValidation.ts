@@ -207,7 +207,8 @@ export function toTransportation(transportation): CertificateTransport {
             registration: transportation.registrationNumber,
             exportLocation: transportation.departurePlace,
             exportDate: transportation.exportDate,
-            pointOfDestination: transportation.pointOfDestination
+            pointOfDestination: transportation.pointOfDestination,
+            containerId: transportation.containerNumber || transportation.containerIdentificationNumber,
          }
       case TRANSPORT_VEHICLE_TRAIN:
          return {
@@ -215,7 +216,8 @@ export function toTransportation(transportation): CertificateTransport {
             billNumber: transportation.railwayBillNumber,
             exportLocation: transportation.departurePlace,
             exportDate: transportation.exportDate,
-            pointOfDestination: transportation.pointOfDestination
+            pointOfDestination: transportation.pointOfDestination,
+            containerId: transportation.containerNumber || transportation.containerIdentificationNumber,
          }
       case TRANSPORT_VEHICLE_PLANE:
          return {
@@ -263,7 +265,8 @@ export function toTransportations(transportation): CatchCertificateTransport {
             registration: transportation.registrationNumber,
             exportLocation: transportation.departurePlace,
             transportDocuments,
-            pointOfDestination: transportation.pointOfDestination
+            pointOfDestination: transportation.pointOfDestination,
+            containerId: transportation.containerNumber || transportation.containerIdentificationNumber,
          }
       case TRANSPORT_VEHICLE_TRAIN:
          return {
@@ -273,7 +276,8 @@ export function toTransportations(transportation): CatchCertificateTransport {
             billNumber: transportation.railwayBillNumber,
             exportLocation: transportation.departurePlace,
             transportDocuments,
-            pointOfDestination: transportation.pointOfDestination
+            pointOfDestination: transportation.pointOfDestination,
+            containerId: transportation.containerNumber || transportation.containerIdentificationNumber,
          }
       case TRANSPORT_VEHICLE_PLANE:
          return {
