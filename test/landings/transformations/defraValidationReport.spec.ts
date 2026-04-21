@@ -380,7 +380,7 @@ describe('Mapping data for DEFRA Central Reporting HUB', () => {
         "dateCreated": new Date("2020-06-24T10:39:32.000Z"),
         "documentNumber": "GBR-2020-CC-1BC924FCF",
         "documentType": "CatchCertificate",
-        "documentUri": "undefined/qr/export-certificates/_44fd226f-598f-4615-930f-716b2762fea4.pdf",
+        "documentUri": `${Config.getConfig().externalAppUrl}/qr/export-certificates/_44fd226f-598f-4615-930f-716b2762fea4.pdf`,
         "failedSubmissions": 5,
         "landingsCloned": false,
         "parentDocumentVoid": false,
@@ -943,6 +943,117 @@ describe('Mapping data for DEFRA Central Reporting HUB', () => {
       expect(res.transportations?.[0]).toEqual(expected);
     });
 
+    it('can map pointOfDestination from exportData root level with single transportation', () => {
+      const res = toCcDefraReport('GBR-2020-CC-1BC924FCF', correlationId, DocumentStatuses.Draft, requestByAdmin, mockGetVesselIdx, {
+        ...exampleCc,
+        exportData: {
+          ...exampleCc.exportData,
+          transportations: undefined, // Remove transportations array to test single transportation
+          pointOfDestination: 'Rotterdam Port',
+          transportation: {
+            vehicle: 'truck',
+            departurePlace: 'Hull',
+            cmr: true
+          }
+        }
+      });
+
+      expect(res.pointOfDestination).toEqual('Rotterdam Port');
+      expect(res.transportation?.modeofTransport).toEqual('truck');
+    });
+
+    it('can map pointOfDestination from exportData.transportation as fallback', () => {
+      const res = toCcDefraReport('GBR-2020-CC-1BC924FCF', correlationId, DocumentStatuses.Draft, requestByAdmin, mockGetVesselIdx, {
+        ...exampleCc,
+        exportData: {
+          ...exampleCc.exportData,
+          transportations: undefined, // Remove transportations array to test single transportation
+          transportation: {
+            vehicle: 'truck',
+            departurePlace: 'Hull',
+            cmr: true,
+            pointOfDestination: 'Amsterdam Harbour'
+          }
+        }
+      });
+
+      expect(res.pointOfDestination).toEqual('Amsterdam Harbour');
+    });
+
+    it('can map pointOfDestination from exportData root level with multiple transportations', () => {
+      const res = toCcDefraReport('GBR-2020-CC-1BC924FCF', correlationId, DocumentStatuses.Draft, requestByAdmin, mockGetVesselIdx, {
+        ...exampleCc,
+        exportData: {
+          ...exampleCc.exportData,
+          pointOfDestination: 'Paris Central',
+          transportations: [{
+            id: 0,
+            vehicle: 'plane',
+            freightBillNumber: 'FB123',
+            flightNumber: 'BA456',
+            departurePlace: 'London Heathrow',
+            pointOfDestination: 'Paris CDG',
+            transportDocuments: []
+          }],
+          exportedFrom: 'United Kingdom',
+          exportedTo: {
+            officialCountryName: 'France',
+            isoCodeAlpha2: 'FR',
+            isoCodeAlpha3: 'FRA',
+            isoNumericCode: '250'
+          }
+        }
+      });
+
+      expect(res.pointOfDestination).toEqual('Paris Central');
+      expect(res.transportations).toHaveLength(1);
+      expect(res.transportations?.[0].pointOfDestination).toEqual('Paris CDG');
+    });
+
+    it('can map pointOfDestination in plane transportation within transportations array', () => {
+      const res = toCcDefraReport('GBR-2020-CC-1BC924FCF', correlationId, DocumentStatuses.Draft, requestByAdmin, mockGetVesselIdx, {
+        ...exampleCc,
+        exportData: {
+          ...exampleCc.exportData,
+          transportations: [{
+            id: 0,
+            vehicle: 'plane',
+            freightBillNumber: 'AIR789',
+            flightNumber: 'LH890',
+            containerNumber: 'CONT123',
+            departurePlace: 'Manchester Airport',
+            pointOfDestination: 'Frankfurt Airport Terminal 1',
+            transportDocuments: [{
+              name: 'Air Waybill',
+              reference: 'AWB001'
+            }]
+          }],
+          exportedFrom: 'United Kingdom',
+          exportedTo: {
+            officialCountryName: 'Germany',
+            isoCodeAlpha2: 'DE',
+            isoCodeAlpha3: 'DEU',
+            isoNumericCode: '276'
+          }
+        }
+      });
+
+      expect(res.transportations).toHaveLength(1);
+      expect(res.transportations?.[0]).toEqual({
+        id: 0,
+        modeofTransport: 'plane',
+        freightBillNumber: 'AIR789',
+        flightNumber: 'LH890',
+        containerId: 'CONT123',
+        exportLocation: 'Manchester Airport',
+        pointOfDestination: 'Frankfurt Airport Terminal 1',
+        transportDocuments: [{
+          name: 'Air Waybill',
+          reference: 'AWB001'
+        }]
+      });
+    });
+
     it('can map a whole CC document without _dynamicUser', () => {
       const res = toCcDefraReport('GBR-2020-CC-1BC924FCF', correlationId, DocumentStatuses.Draft, requestByAdmin, mockGetVesselIdx, {
         ...exampleCc,
@@ -1187,6 +1298,29 @@ describe('Mapping data for DEFRA Central Reporting HUB', () => {
         _correlationId: 'some-uuid-correlation-id',
         requestedByAdmin: false
       });
+    });
+
+    it('includes pointOfDestination when present in exportData', () => {
+      const example = {
+        createdAt: new Date(),
+        __t: 'catchCert',
+        createdBy: 'creator',
+        status: 'DRAFT',
+        documentNumber: 'DOC-1',
+        audit: [],
+        exportData: {
+          exporterDetails: {},
+          conservation: {},
+          exportedFrom: 'United Kingdom',
+          exportedTo: { officialCountryName: 'Nigeria', isoCodeAlpha2: 'NG', isoCodeAlpha3: 'NGA', isoNumericCode: '566' },
+          pointOfDestination: 'Some Port',
+          products: []
+        }
+      } as any;
+
+      const res = toCcDefraReport('DOC-1', 'cid', DocumentStatuses.Draft, false, () => undefined, example as any);
+
+      expect(res.pointOfDestination).toEqual('Some Port');
     });
 
     it('can map a whole CC document without createdAt', () => {
@@ -2713,7 +2847,20 @@ const exampleCc: IDocument = {
     "investigator": "Chris Waugh",
     "status": "CLOSED_NFA"
   },
-  "numberOfFailedAttempts": 5
+  "numberOfFailedAttempts": 5,
+  "catchSubmission": {
+    "reference": "CATCH.CC.GB.0000056",
+    "status": "FAILURE",
+    "faultCode": "S:Client",
+    "faultString": "Some business rules are not met",
+    "validationErrors": [
+      {
+        "id": "MOTROAREV-LICENCECOUNTRYCODE-MANDATORY",
+        "message": "Must not be empty.",
+        "field": "[en] mot.road.revision.licence.country.code"
+      }
+    ]
+  }
 }
 
 const correlationId = 'some-uuid-correlation-id';

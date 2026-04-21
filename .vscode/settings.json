@@ -1,0 +1,6 @@
+{
+    "sonarlint.connectedMode.project": {
+        "connectionId": "defra",
+        "projectKey": "DEFRA_eutd-mmo-fes-reference-shared-data"
+    }
+}

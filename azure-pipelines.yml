@@ -10,11 +10,22 @@ trigger:
       - 'develop'
       - 'feature/*'
       - 'epic/*'
+  paths:
+    exclude:
+      - '.github/**'
+pr:
+  branches:
+    include:
+      - 'main'
+      - 'develop'
+  paths:
+    exclude:
+      - '.github/**'
 
 resources:
   repositories:
     - repository: MMOPipelineCommon
-      name: "DEFRA/eutd-mmo-fes-pipeline-common"
+      name: 'DEFRA/eutd-mmo-fes-pipeline-common'
       endpoint: DEFRA
       type: github
       ref: refs/heads/main

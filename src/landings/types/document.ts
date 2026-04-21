@@ -20,6 +20,26 @@ export enum LandingStatus {
   DataNeverExpected = 'LANDING_DATA_NEVER_EXPECTED'
 }
 
+export type euStatus = 'SUCCESS' | 'FAILURE' | 'IN_PROGRESS';
+export interface ICatchStatus {
+  status: euStatus;
+  reference?: string;
+  message?: string;
+  code?: string;
+  name?: string;
+  uri?: string;
+  timestamp?: string;
+  reasonInformation?: string;
+  requestId?: string;
+  faultCode?: string;
+  faultString?: string;
+  validationErrors?: Array<{
+    id: string;
+    message: string;
+    field: string;
+  }>;
+}
+
 export interface Investigation {
   investigator: string,
   status: string
@@ -55,7 +75,8 @@ export interface IDocument {
   numberOfFailedAttempts?: number,
   clonedFrom?: string,
   landingsCloned?: boolean,
-  parentDocumentVoid?: boolean
+  parentDocumentVoid?: boolean,
+  catchSubmission?: ICatchStatus
 }
 
 export interface Catch {
@@ -65,6 +86,7 @@ export interface Catch {
   homePort?: string;
   flag?: string; // jurisdiction under whose laws the vessel is registered or licensed
   cfr?: string; // cost and freight (CFR) is a legal term
+  ircs?: string | null;
   imoNumber?: string | null;
   licenceNumber?: string;
   licenceValidTo?: string;

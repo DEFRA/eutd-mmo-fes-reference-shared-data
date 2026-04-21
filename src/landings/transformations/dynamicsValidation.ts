@@ -63,7 +63,7 @@ export const isLandingDataLate: (firstDateTimeRetrieved: string, landingDataExpe
 
 export function landingExists(ccQuery: ICcQueryResult, output?: LandingStatusType) {
   if (ccQuery.isSpeciesExists) {
-    const isOverusedAllCerts = ccQuery.isOverusedAllCerts && ccQuery.overUsedInfo.filter((documentNumber: string) => documentNumber !== ccQuery.documentNumber).length > 0;
+    const isOverusedAllCerts = ccQuery.isOverusedAllCerts && ccQuery.overUsedInfo.some((documentNumber: string) => documentNumber !== ccQuery.documentNumber);
     if (ccQuery.isOverusedThisCert && isOverusedAllCerts) {
       output = LandingStatusType.ValidationFailure_WeightAndOveruse
     } else if (ccQuery.isOverusedThisCert) {

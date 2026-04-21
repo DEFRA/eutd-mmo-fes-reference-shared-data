@@ -84,6 +84,7 @@ interface ModeOfTransport {
     modeofTransport: string;
     exportLocation?: string;
     exportDate?: string;
+    pointOfDestination?: string;
 }
 
 export interface Truck extends ModeOfTransport {
@@ -122,6 +123,7 @@ interface CatchCertificateModeOfTransport {
     exportLocation: string;
     freightBillNumber?: string;
     transportDocuments?: CatchCertificateTransportDocument[];
+    pointOfDestination?: string;
 }
 
 export interface CatchCertificateTruck extends CatchCertificateModeOfTransport {
@@ -237,10 +239,14 @@ export interface IDefraValidationCatchCertificate {
     exportedTo?:            ICountry;
     transportation?:        CertificateTransport;
     transportations?:       CatchCertificateTransport[];
+    pointOfDestination?:    string;
     failedSubmissions?:     number;
     _correlationId:         string;
     requestedByAdmin:       boolean;
     clonedFrom?:            string;
     landingsCloned?:        boolean;
     parentDocumentVoid?:    boolean;
+    catchReference?:        string;
+    rejectedReason?:        string;
+    catchStatus?:           string;
 }

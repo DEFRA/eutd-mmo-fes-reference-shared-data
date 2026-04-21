@@ -8,8 +8,8 @@ import { isElog, isWithinDeminimus } from './isWithinDeminimus';
 
 export const TOLERANCE_IN_KG = 50;
 
-const shouldThrowQueryTimeError = (queryTime: moment.Moment | null) => !(queryTime && queryTime.isValid());
-const unwoundCatchCertsFilter = (c: any) => c.extended.vesselOverriddenByAdmin || typeof c.rssNumber !== 'undefined';
+const shouldThrowQueryTimeError = (queryTime: moment.Moment | null) => !(queryTime?.isValid());
+const unwoundCatchCertsFilter = (c: any) => c.extended.vesselOverriddenByAdmin || c.rssNumber !== undefined;
 const getQueryResultSource = (landing: any) => landing.items[0]?.breakdown[0] ? landing.items[0].breakdown[0].source : undefined;
 
 function performWeightOveruseCheck(r: ICcQueryResult, landingWeightBySpecies: any, landing: any, allCertsGroupedWithAliases: any, speciesCodeOnLanding: string, speciesCodeOnCert?: string) {
@@ -18,7 +18,7 @@ function performWeightOveruseCheck(r: ICcQueryResult, landingWeightBySpecies: an
     r.landingTotalBreakdown = _(landing.items.filter(landing => landing.species === speciesCodeOnLanding))
         .flatMap(c => c.breakdown).value();
 
-    const isEstimated = r.landingTotalBreakdown && r.landingTotalBreakdown.some(_ => _.isEstimate)
+    const isEstimated = r.landingTotalBreakdown.some(_ => _.isEstimate)
 
     r.isOverusedThisCert = isEstimated ? (r.weightOnCert > (r.weightOnLanding * 1.1)) : (r.weightOnCert > r.weightOnLanding)
     r.isOverusedAllCerts = isEstimated ? (r.weightOnAllCerts > ((r.weightOnLanding * 1.1) + TOLERANCE_IN_KG)) : (r.weightOnAllCerts > (r.weightOnLanding + TOLERANCE_IN_KG))
@@ -73,7 +73,7 @@ function enrichWithLandingData(params: { r: ICcQueryResult, queryTime: moment.Mo
     // if not then we have have a species mis match
     const speciesAlias = params.getSpeciesAliases(params.item.species);
     if (params.item.species in params.landingWeightBySpecies || speciesAlias.some((sa: string) => sa in params.landingWeightBySpecies)) {
-        const speciesAliasCode = !(params.item.species in params.landingWeightBySpecies) ? speciesAlias.find((sa: string) => sa in params.landingWeightBySpecies) : undefined;
+        const speciesAliasCode = (params.item.species in params.landingWeightBySpecies) ? undefined : speciesAlias.find((sa: string) => sa in params.landingWeightBySpecies);
         params.r.speciesAlias = speciesAliasCode ? 'Y' : 'N';
         params.r.speciesAnomaly = speciesAliasCode;
 
