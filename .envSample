@@ -1,6 +1,20 @@
 BOOMI_URL =
 SKIP_AV_SCAN =
 
+# --- Boomi API authentication ---
+# Local development only: set these three vars to use OAuth2 client credentials.
+# Leave them unset in Azure — Managed Identity is used automatically instead.
+REF_BOOMI_API_OAUTH_CLIENT_ID=
+REF_BOOMI_API_OAUTH_CLIENT_SECRET=
+REF_BOOMI_API_OAUTH_TOKEN_URL=
+
+# OAuth scopes (required in all environments)
+REF_BOOMI_API_OAUTH_AL_SCOPE=
+REF_BOOMI_API_OAUTH_MMO_SCOPE=
+REF_BOOMI_CATCH_API_OAUTH_SCOPE=
+
+REF_BOOMI_USER=
+
 REFRESH_SPECIES_JOB=
 REFRESH_VESSEL_JOB=
 INSTRUMENTATION_CLOUD_ROLE=
