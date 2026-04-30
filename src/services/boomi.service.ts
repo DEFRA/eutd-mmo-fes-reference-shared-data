@@ -1,5 +1,6 @@
 import axios, { AxiosResponse } from "axios";
 import querystring from 'node:querystring';
+import { DefaultAzureCredential } from '@azure/identity';
 import { getConfig } from '../config';
 import { CertificateAddress } from "../landings/types/defraValidation";
 import { SSL_OP_LEGACY_SERVER_CONNECT } from "node:constants";
@@ -383,8 +384,8 @@ export class BoomiService {
     }
   }
 
-  static async getAddresses(postcode: string): Promise<CertificateAddress[]> {
-    const cacheKey = (postcode || '').trim().toUpperCase();
+  static async getAddresses(postcode: string = ''): Promise<CertificateAddress[]> {
+    const cacheKey = postcode.trim().toUpperCase();
     const cached = this.addressCache.get(cacheKey);
     if (cached && cached.expiresAtMs > Date.now()) {
       logger.info(`[BOOMI][GET-ADDRESS][CACHE-HIT][${cacheKey}]`);
@@ -460,33 +461,48 @@ export class BoomiService {
 
     logger.info(`[BOOMI-SERVICE][${resourceType}][REQUESTING-OAUTH-TOKEN]`);
 
-    const tokenRequest: IOAuthRequest = {
-      client_id: config.boomiApiOauthClientId,
-      client_secret: config.boomiApiOauthClientSecret,
-      scope: this.resourceTypeScope(config, resourceType),
-      grant_type: 'client_credentials'
-    };
-
-    const tokenUrl = config.boomiApiOauthTokenUrl;
-    const data = querystring.stringify(tokenRequest);
+    const scope = this.resourceTypeScope(config, resourceType);
 
     try {
       const tokenPromise = (async () => {
-        const tokenResponse: AxiosResponse<IOAuthResponse> = await axios.post<IOAuthResponse>(
-          tokenUrl,
-          data,
-          {
-            headers: {
-              'Content-Type': 'application/x-www-form-urlencoded'
-            },
-            httpsAgent: this.httpsAgent,
-            timeout: this.oauthTimeoutMs
-          }
-        );
+        let token: IOAuthResponse;
 
-        const token = tokenResponse.data;
-        const expiresAtMs = Date.now() + (token.expires_in * 1000);
-        this.oauthTokenCache.set(resourceType, { token, expiresAtMs });
+        if (config.boomiApiOauthClientId) {
+          // Local development: use OAuth2 client credentials
+          logger.info(`[BOOMI-SERVICE][${resourceType}][AUTH-MODE][OAUTH2-CLIENT-CREDENTIALS]`);
+          const tokenRequest: IOAuthRequest = {
+            client_id: config.boomiApiOauthClientId,
+            client_secret: config.boomiApiOauthClientSecret,
+            scope,
+            grant_type: 'client_credentials'
+          };
+          const tokenResponse: AxiosResponse<IOAuthResponse> = await axios.post<IOAuthResponse>(
+            config.boomiApiOauthTokenUrl,
+            querystring.stringify(tokenRequest),
+            {
+              headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+              httpsAgent: this.httpsAgent,
+              timeout: this.oauthTimeoutMs
+            }
+          );
+          token = tokenResponse.data;
+          const expiresAtMs = Date.now() + (token.expires_in * 1000);
+          this.oauthTokenCache.set(resourceType, { token, expiresAtMs });
+        } else {
+          // Azure: use Managed Identity
+          logger.info(`[BOOMI-SERVICE][${resourceType}][AUTH-MODE][MANAGED-IDENTITY]`);
+          const credential = new DefaultAzureCredential();
+          const accessToken = await credential.getToken(scope);
+          const now = Date.now();
+          const expiresAtMs = accessToken.expiresOnTimestamp;
+          token = {
+            token_type: 'Bearer',
+            access_token: accessToken.token,
+            expires_in: Math.floor((expiresAtMs - now) / 1000),
+            ext_expires_in: Math.floor((expiresAtMs - now) / 1000)
+          };
+          this.oauthTokenCache.set(resourceType, { token, expiresAtMs });
+        }
 
         logger.info(`[BOOMI-SERVICE][${resourceType}][OAUTH-TOKEN-RECEIVED]`);
         return token;
