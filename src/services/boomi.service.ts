@@ -443,7 +443,7 @@ export class BoomiService {
   private static async getExchangeAccessToken(resourceType: resourceType, managedIdCredential: ManagedIdentityCredential, audience: string): Promise<string> {
     const tokenExchangeScope = `${audience}/.default`;
     const accessToken = await managedIdCredential.getToken(tokenExchangeScope);
-    if (!accessToken || !accessToken.token) {
+    if (!accessToken?.token) {
       logger.error(`[BOOMI-SERVICE][${resourceType}][AUTH-MODE][MANAGED-IDENTITY][EXCHANGE-ACCESS-TOKEN][ERROR] Failed to obtain access token from managed identity`);
       throw new Error("Failed to obtain managed identity token");
     }
@@ -513,7 +513,7 @@ export class BoomiService {
 
           // Step 2: Exchange MI token for target tenant/API token.
           const targetAccessToken = await clientAssertionCredential.getToken(config.boomiApimAuthScope);
-          if (!targetAccessToken || !targetAccessToken.token) {
+          if (!targetAccessToken?.token) {
             logger.error(`[BOOMI-SERVICE][${resourceType}][AUTH-MODE][MANAGED-IDENTITY][TARGET-ACCESS-TOKEN][ERROR] Failed to obtain access token from target tenant`);
             throw new Error('Failed to obtain target tenant access token');
           }
