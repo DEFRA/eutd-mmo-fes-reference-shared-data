@@ -1,6 +1,5 @@
 import axios, { AxiosResponse } from "axios";
 import querystring from 'node:querystring';
-import { DefaultAzureCredential } from '@azure/identity';
 import { getConfig } from '../config';
 import { CertificateAddress } from "../landings/types/defraValidation";
 import { SSL_OP_LEGACY_SERVER_CONNECT } from "node:constants";
