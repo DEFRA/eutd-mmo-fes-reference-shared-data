@@ -1,5 +1,5 @@
 import axios from "axios";
-import { DefaultAzureCredential } from '@azure/identity';
+import { ClientAssertionCredential, ManagedIdentityCredential } from '@azure/identity';
 import {
   BoomiService,
   IBoomiAddressResponse,
@@ -23,9 +23,8 @@ const { v4: uuid } = require('uuid');
 jest.mock('uuid');
 jest.mock('axios');
 jest.mock('@azure/identity', () => ({
-  DefaultAzureCredential: jest.fn().mockImplementation(() => ({
-    getToken: jest.fn()
-  }))
+  ManagedIdentityCredential: jest.fn(),
+  ClientAssertionCredential: jest.fn()
 }));
 
 const clearBoomiOAuthCache = () => {
@@ -576,7 +575,7 @@ describe('call sendRequest', () => {
 
     await expect(BoomiService.sendRequest('address', reqHeaders, "/url", { postcode: 'AB1 1AB' })).rejects.toThrow();
 
-    expect(mockLoggerError).toHaveBeenCalledWith(`[BOOMI-SERVICE][address][ERROR][UNABLE-TO-GET-OAUTH-TOKEN][${error}]`);
+    expect(mockLoggerError).toHaveBeenCalledWith(`[BOOMI-SERVICE][address][ERROR][UNABLE-TO-GET-TOKEN][${error}]`);
   });
 
   it('will return null if no data is found', async () => {
@@ -655,7 +654,8 @@ describe('CATCH API Integration (FI0-10355)', () => {
 
   describe('getEntraOAuthToken', () => {
     let mockAxiosPost: jest.SpyInstance;
-    let mockGetToken: jest.Mock;
+    let mockManagedIdentityGetToken: jest.Mock;
+    let mockClientAssertionGetToken: jest.Mock;
     let mockConfig: jest.SpyInstance;
 
     const mockExpiresOnTimestamp = Date.now() + 3_600_000;
@@ -668,8 +668,22 @@ describe('CATCH API Integration (FI0-10355)', () => {
 
     beforeEach(() => {
       mockAxiosPost = jest.spyOn(axios, 'post');
-      mockGetToken = jest.fn();
-      (DefaultAzureCredential as jest.Mock).mockImplementation(() => ({ getToken: mockGetToken }));
+      mockManagedIdentityGetToken = jest.fn();
+      mockClientAssertionGetToken = jest.fn();
+
+      (ManagedIdentityCredential as unknown as jest.Mock).mockImplementation(() => ({
+        getToken: mockManagedIdentityGetToken
+      }));
+
+      (ClientAssertionCredential as unknown as jest.Mock).mockImplementation(
+        (_tenantId: string, _clientId: string, getAssertion: () => Promise<string>) => ({
+          getToken: jest.fn(async (scope: string) => {
+            await getAssertion();
+            return mockClientAssertionGetToken(scope);
+          })
+        })
+      );
+
       mockConfig = jest.spyOn(config, 'getConfig');
     });
 
@@ -696,10 +710,11 @@ describe('CATCH API Integration (FI0-10355)', () => {
         const result = await BoomiService.getEntraOAuthToken('catchSubmit');
 
         expect(mockAxiosPost).toHaveBeenCalled();
-        expect(mockGetToken).not.toHaveBeenCalled();
+        expect(mockManagedIdentityGetToken).not.toHaveBeenCalled();
+        expect(mockClientAssertionGetToken).not.toHaveBeenCalled();
         expect(result.access_token).toBe('test-token-catchSubmit');
         expect(mockLoggerInfo).toHaveBeenCalledWith('[BOOMI-SERVICE][catchSubmit][AUTH-MODE][OAUTH2-CLIENT-CREDENTIALS]');
-        expect(mockLoggerInfo).toHaveBeenCalledWith('[BOOMI-SERVICE][catchSubmit][OAUTH-TOKEN-RECEIVED]');
+        expect(mockLoggerInfo).toHaveBeenCalledWith('[BOOMI-SERVICE][catchSubmit][ACCESS-TOKEN-RECEIVED]');
       });
 
       it('should use OAuth2 for landing when client credentials are configured', async () => {
@@ -715,7 +730,7 @@ describe('CATCH API Integration (FI0-10355)', () => {
       it('should throw when OAuth2 token request fails', async () => {
         mockAxiosPost.mockRejectedValue(new Error('Network error'));
 
-        await expect(BoomiService.getEntraOAuthToken('catchSubmit')).rejects.toThrow('Failed to get catchSubmit OAuth token: Network error');
+        await expect(BoomiService.getEntraOAuthToken('catchSubmit')).rejects.toThrow('Failed to get catchSubmit OAuth/access token: Network error');
         expect(mockLoggerError).toHaveBeenCalledWith(expect.stringContaining('[BOOMI-SERVICE][catchSubmit][ERROR]'));
       });
     });
@@ -726,25 +741,38 @@ describe('CATCH API Integration (FI0-10355)', () => {
           // no boomiApiOauthClientId => managed identity path
           boomiCatchApiOauthScope: 'catch-scope',
           boomiLandingApiOauthScope: 'landing-scope',
-          boomiAddressLookupApiOauthScope: 'address-scope'
+          boomiAddressLookupApiOauthScope: 'address-scope',
+          managedIdentityClientId: 'managed-identity-client-id',
+          boomiApimTenantId: 'tenant-b-id',
+          boomiApimClientId: 'target-app-client-id',
+          boomiApimAuthScope: 'api://target-resource/.default'
         } as any);
       });
 
       it('should use managed identity for catchSubmit when no client credentials', async () => {
-        mockGetToken.mockResolvedValue({ token: 'test-token-catchSubmit', expiresOnTimestamp: mockExpiresOnTimestamp });
+        mockManagedIdentityGetToken.mockResolvedValue({ token: 'exchange-token', expiresOnTimestamp: mockExpiresOnTimestamp });
+        mockClientAssertionGetToken.mockResolvedValue({ token: 'test-token-catchSubmit', expiresOnTimestamp: mockExpiresOnTimestamp });
 
         const result = await BoomiService.getEntraOAuthToken('catchSubmit');
 
-        expect(mockGetToken).toHaveBeenCalled();
+        expect(ManagedIdentityCredential as unknown as jest.Mock).toHaveBeenCalledWith('managed-identity-client-id');
+        expect(ClientAssertionCredential as unknown as jest.Mock).toHaveBeenCalledWith(
+          'tenant-b-id',
+          'target-app-client-id',
+          expect.any(Function)
+        );
+        expect(mockManagedIdentityGetToken).toHaveBeenCalledWith('api://AzureADTokenExchange/.default');
+        expect(mockClientAssertionGetToken).toHaveBeenCalledWith('api://target-resource/.default');
         expect(mockAxiosPost).not.toHaveBeenCalled();
         expect(result.token_type).toBe('Bearer');
         expect(result.access_token).toBe('test-token-catchSubmit');
         expect(mockLoggerInfo).toHaveBeenCalledWith('[BOOMI-SERVICE][catchSubmit][AUTH-MODE][MANAGED-IDENTITY]');
-        expect(mockLoggerInfo).toHaveBeenCalledWith('[BOOMI-SERVICE][catchSubmit][OAUTH-TOKEN-RECEIVED]');
+        expect(mockLoggerInfo).toHaveBeenCalledWith('[BOOMI-SERVICE][catchSubmit][ACCESS-TOKEN-RECEIVED]');
       });
 
       it('should use managed identity for landing', async () => {
-        mockGetToken.mockResolvedValue({ token: 'test-token-landing', expiresOnTimestamp: mockExpiresOnTimestamp });
+        mockManagedIdentityGetToken.mockResolvedValue({ token: 'exchange-token', expiresOnTimestamp: mockExpiresOnTimestamp });
+        mockClientAssertionGetToken.mockResolvedValue({ token: 'test-token-landing', expiresOnTimestamp: mockExpiresOnTimestamp });
 
         const result = await BoomiService.getEntraOAuthToken('landing');
 
@@ -753,7 +781,8 @@ describe('CATCH API Integration (FI0-10355)', () => {
       });
 
       it('should use managed identity for catchActivity', async () => {
-        mockGetToken.mockResolvedValue({ token: 'test-token-catchactivity', expiresOnTimestamp: mockExpiresOnTimestamp });
+        mockManagedIdentityGetToken.mockResolvedValue({ token: 'exchange-token', expiresOnTimestamp: mockExpiresOnTimestamp });
+        mockClientAssertionGetToken.mockResolvedValue({ token: 'test-token-catchactivity', expiresOnTimestamp: mockExpiresOnTimestamp });
 
         const result = await BoomiService.getEntraOAuthToken('catchActivity');
 
@@ -761,23 +790,23 @@ describe('CATCH API Integration (FI0-10355)', () => {
       });
 
       it('should throw when managed identity fails', async () => {
-        mockGetToken.mockRejectedValue(new Error('Network error'));
+        mockManagedIdentityGetToken.mockRejectedValue(new Error('Network error'));
 
-        await expect(BoomiService.getEntraOAuthToken('catchSubmit')).rejects.toThrow('Failed to get catchSubmit OAuth token: Network error');
+        await expect(BoomiService.getEntraOAuthToken('catchSubmit')).rejects.toThrow('Failed to get catchSubmit OAuth/access token: Network error');
         expect(mockLoggerError).toHaveBeenCalledWith(expect.stringContaining('[BOOMI-SERVICE][catchSubmit][ERROR]'));
       });
 
       it('should handle failure with stack trace', async () => {
-        mockGetToken.mockRejectedValue({ stack: 'Error stack trace here' });
+        mockManagedIdentityGetToken.mockRejectedValue({ stack: 'Error stack trace here' });
 
-        await expect(BoomiService.getEntraOAuthToken('catchSubmit')).rejects.toThrow('Failed to get catchSubmit OAuth token:');
+        await expect(BoomiService.getEntraOAuthToken('catchSubmit')).rejects.toThrow('Failed to get catchSubmit OAuth/access token:');
         expect(mockLoggerError).toHaveBeenCalledWith(expect.stringContaining('Error stack trace here'));
       });
 
       it('should handle failure without stack or message', async () => {
-        mockGetToken.mockRejectedValue('Simple string error');
+        mockManagedIdentityGetToken.mockRejectedValue('Simple string error');
 
-        await expect(BoomiService.getEntraOAuthToken('catchSubmit')).rejects.toThrow('Failed to get catchSubmit OAuth token: Simple string error');
+        await expect(BoomiService.getEntraOAuthToken('catchSubmit')).rejects.toThrow('Failed to get catchSubmit OAuth/access token: Simple string error');
         expect(mockLoggerError).toHaveBeenCalledWith(expect.stringContaining('Simple string error'));
       });
     });
@@ -1128,7 +1157,8 @@ describe('CATCH API Integration (FI0-10355)', () => {
 // Additional migrated lightweight tests from test/boomi.service.test.ts
 describe('Migrated BoomiService lightweight tests', () => {
 
-  let mockGetToken: jest.Mock;
+  let mockManagedIdentityGetToken: jest.Mock;
+  let mockClientAssertionGetToken: jest.Mock;
 
   beforeEach(() => {
     jest.resetAllMocks();
@@ -1140,11 +1170,28 @@ describe('Migrated BoomiService lightweight tests', () => {
       boomiUrl: 'https://boomi.test',
       boomiLandingApiOauthScope: 'scope',
       boomiAddressLookupApiOauthScope: 'scope',
-      boomiCatchApiOauthScope: 'scope'
+      boomiCatchApiOauthScope: 'scope',
+      managedIdentityClientId: 'managed-identity-client-id',
+      boomiApimTenantId: 'tenant-b-id',
+      boomiApimClientId: 'target-app-client-id',
+      boomiApimAuthScope: 'api://target-resource/.default'
     } as any);
 
-    mockGetToken = jest.fn();
-    (DefaultAzureCredential as jest.Mock).mockImplementation(() => ({ getToken: mockGetToken }));
+    mockManagedIdentityGetToken = jest.fn();
+    mockClientAssertionGetToken = jest.fn();
+
+    (ManagedIdentityCredential as unknown as jest.Mock).mockImplementation(() => ({
+      getToken: mockManagedIdentityGetToken
+    }));
+
+    (ClientAssertionCredential as unknown as jest.Mock).mockImplementation(
+      (_tenantId: string, _clientId: string, getAssertion: () => Promise<string>) => ({
+        getToken: jest.fn(async (scope: string) => {
+          await getAssertion();
+          return mockClientAssertionGetToken(scope);
+        })
+      })
+    );
   });
 
   test('mapAddresses maps API response correctly (migrated)', () => {
@@ -1189,20 +1236,23 @@ describe('Migrated BoomiService lightweight tests', () => {
 
   test('getEntraOAuthToken caches token and handles in-flight requests (migrated)', async () => {
     const mockExpiresOnTimestamp = Date.now() + 3_600_000;
-    mockGetToken.mockResolvedValue({ token: 'abc', expiresOnTimestamp: mockExpiresOnTimestamp });
+    mockManagedIdentityGetToken.mockResolvedValue({ token: 'exchange-abc', expiresOnTimestamp: mockExpiresOnTimestamp });
+    mockClientAssertionGetToken.mockResolvedValue({ token: 'abc', expiresOnTimestamp: mockExpiresOnTimestamp });
 
     const p1 = BoomiService.getEntraOAuthToken('catchSubmit' as any);
     const p2 = BoomiService.getEntraOAuthToken('catchSubmit' as any);
 
     const [t1, t2] = await Promise.all([p1, p2]);
 
-    expect(mockGetToken).toHaveBeenCalledTimes(1);
+    expect(mockManagedIdentityGetToken).toHaveBeenCalledTimes(1);
+    expect(mockClientAssertionGetToken).toHaveBeenCalledTimes(1);
     expect(t1.access_token).toBe('abc');
     expect(t2.access_token).toBe('abc');
 
     // subsequent call should hit cache (no more credential calls)
     const t3 = await BoomiService.getEntraOAuthToken('catchSubmit' as any);
-    expect(mockGetToken).toHaveBeenCalledTimes(1);
+    expect(mockManagedIdentityGetToken).toHaveBeenCalledTimes(1);
+    expect(mockClientAssertionGetToken).toHaveBeenCalledTimes(1);
     expect(t3.access_token).toBe('abc');
   });
 

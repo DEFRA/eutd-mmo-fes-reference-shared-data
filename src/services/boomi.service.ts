@@ -1,10 +1,10 @@
 import axios, { AxiosResponse } from "axios";
 import querystring from 'node:querystring';
-import { DefaultAzureCredential } from '@azure/identity';
 import { getConfig } from '../config';
 import { CertificateAddress } from "../landings/types/defraValidation";
 import { SSL_OP_LEGACY_SERVER_CONNECT } from "node:constants";
 import logger from '../logger';
+import { ClientAssertionCredential, ManagedIdentityCredential } from "@azure/identity";
 
 const https = require('node:https');
 const moment = require('moment');
@@ -440,6 +440,16 @@ export class BoomiService {
     return response;
   }
 
+  private static async getExchangeAccessToken(resourceType: resourceType, managedIdCredential: ManagedIdentityCredential, audience: string): Promise<string> {
+    const tokenExchangeScope = `${audience}/.default`;
+    const accessToken = await managedIdCredential.getToken(tokenExchangeScope);
+    if (!accessToken || !accessToken.token) {
+      logger.error(`[BOOMI-SERVICE][${resourceType}][AUTH-MODE][MANAGED-IDENTITY][EXCHANGE-ACCESS-TOKEN][ERROR] Failed to obtain access token from managed identity`);
+      throw new Error("Failed to obtain managed identity token");
+    }
+    return accessToken.token;
+  }
+
   /**
    * Get OAuth token for CATCH API from Entra
    * Implements Scenario 1 from FI0-10355
@@ -491,20 +501,36 @@ export class BoomiService {
         } else {
           // Azure: use Managed Identity
           logger.info(`[BOOMI-SERVICE][${resourceType}][AUTH-MODE][MANAGED-IDENTITY]`);
-          const credential = new DefaultAzureCredential();
-          const accessToken = await credential.getToken(scope);
+
+          // Step 1: Get Managed Identity token for token exchange audience.
+          const managedIdCredential = new ManagedIdentityCredential(config.managedIdentityClientId);
+          const audience = 'api://AzureADTokenExchange';
+          const clientAssertionCredential = new ClientAssertionCredential(
+            config.boomiApimTenantId,
+            config.boomiApimClientId,
+            () => this.getExchangeAccessToken(resourceType, managedIdCredential, audience)
+          );
+
+          // Step 2: Exchange MI token for target tenant/API token.
+          const targetAccessToken = await clientAssertionCredential.getToken(config.boomiApimAuthScope);
+          if (!targetAccessToken || !targetAccessToken.token) {
+            logger.error(`[BOOMI-SERVICE][${resourceType}][AUTH-MODE][MANAGED-IDENTITY][TARGET-ACCESS-TOKEN][ERROR] Failed to obtain access token from target tenant`);
+            throw new Error('Failed to obtain target tenant access token');
+          }
+
           const now = Date.now();
-          const expiresAtMs = accessToken.expiresOnTimestamp;
+          const expiresAtMs = targetAccessToken.expiresOnTimestamp;
+          const expiresInSeconds = Math.max(0, Math.floor((expiresAtMs - now) / 1000));
           token = {
             token_type: 'Bearer',
-            access_token: accessToken.token,
-            expires_in: Math.floor((expiresAtMs - now) / 1000),
-            ext_expires_in: Math.floor((expiresAtMs - now) / 1000)
+            access_token: targetAccessToken.token,
+            expires_in: expiresInSeconds,
+            ext_expires_in: expiresInSeconds
           };
           this.oauthTokenCache.set(resourceType, { token, expiresAtMs });
         }
 
-        logger.info(`[BOOMI-SERVICE][${resourceType}][OAUTH-TOKEN-RECEIVED]`);
+        logger.info(`[BOOMI-SERVICE][${resourceType}][ACCESS-TOKEN-RECEIVED]`);
         return token;
       })();
 
@@ -512,8 +538,8 @@ export class BoomiService {
       return await tokenPromise;
 
     } catch (e) {
-      logger.error(`[BOOMI-SERVICE][${resourceType}][ERROR][UNABLE-TO-GET-OAUTH-TOKEN][${e.stack || e}]`);
-      throw new Error(`Failed to get ${resourceType} OAuth token: ${e.message || e}`);
+      logger.error(`[BOOMI-SERVICE][${resourceType}][ERROR][UNABLE-TO-GET-TOKEN][${e.stack || e}]`);
+      throw new Error(`Failed to get ${resourceType} OAuth/access token: ${e.message || e}`);
     } finally {
       this.oauthTokenInFlight.delete(resourceType);
     }
@@ -569,7 +595,7 @@ export class BoomiService {
             }
           );
 
-          
+
 
           logger.info(`[BOOMI-SERVICE][${resourceType}][RESPONSE-STATUS][${response.status}]`);
           logger.info(`[BOOMI-SERVICE][${resourceType}][RESPONSE-DATA]${JSON.stringify(response.data)}`);

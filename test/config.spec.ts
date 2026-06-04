@@ -22,6 +22,10 @@ describe('config', () => {
     process.env.REF_BOOMI_API_OAUTH_AL_SCOPE = 'al-scope';
     process.env.REF_BOOMI_API_OAUTH_MMO_SCOPE = 'mmo-scope';
     process.env.REF_BOOMI_CATCH_API_OAUTH_SCOPE = 'catch-scope';
+    process.env.MANAGED_IDENTITY_CLIENT_ID = 'managed-identity-client-id';
+    process.env.BOOMI_APIM_TENANT_ID = 'tenant-b-id';
+    process.env.BOOMI_APIM_CLIENT_ID = 'target-app-client-id';
+    process.env.BOOMI_APIM_AUTH_SCOPE = 'api://target-resource/.default';
 
     const config = SUT.getConfig();
     expect(config).toBeDefined();
@@ -30,5 +34,9 @@ describe('config', () => {
     expect(config.boomiAddressLookupApiOauthScope).toBe('al-scope');
     expect(config.boomiLandingApiOauthScope).toBe('mmo-scope');
     expect(config.boomiCatchApiOauthScope).toBe('catch-scope');
+    expect(config.managedIdentityClientId).toBe('managed-identity-client-id');
+    expect(config.boomiApimTenantId).toBe('tenant-b-id');
+    expect(config.boomiApimClientId).toBe('target-app-client-id');
+    expect(config.boomiApimAuthScope).toBe('api://target-resource/.default');
   });
 });
