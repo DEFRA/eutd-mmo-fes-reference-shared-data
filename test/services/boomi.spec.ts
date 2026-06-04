@@ -796,6 +796,31 @@ describe('CATCH API Integration (FI0-10355)', () => {
         expect(mockLoggerError).toHaveBeenCalledWith(expect.stringContaining('[BOOMI-SERVICE][catchSubmit][ERROR]'));
       });
 
+      it('should throw when managed identity exchange token is empty', async () => {
+        mockManagedIdentityGetToken.mockResolvedValue(undefined);
+
+        await expect(BoomiService.getEntraOAuthToken('catchSubmit')).rejects.toThrow(
+          'Failed to get catchSubmit OAuth/access token: Failed to obtain managed identity token'
+        );
+
+        expect(mockLoggerError).toHaveBeenCalledWith(
+          '[BOOMI-SERVICE][catchSubmit][AUTH-MODE][MANAGED-IDENTITY][EXCHANGE-ACCESS-TOKEN][ERROR] Failed to obtain access token from managed identity'
+        );
+      });
+
+      it('should throw when target tenant access token is empty', async () => {
+        mockManagedIdentityGetToken.mockResolvedValue({ token: 'exchange-token', expiresOnTimestamp: mockExpiresOnTimestamp });
+        mockClientAssertionGetToken.mockResolvedValue(undefined);
+
+        await expect(BoomiService.getEntraOAuthToken('catchSubmit')).rejects.toThrow(
+          'Failed to get catchSubmit OAuth/access token: Failed to obtain target tenant access token'
+        );
+
+        expect(mockLoggerError).toHaveBeenCalledWith(
+          '[BOOMI-SERVICE][catchSubmit][AUTH-MODE][MANAGED-IDENTITY][TARGET-ACCESS-TOKEN][ERROR] Failed to obtain access token from target tenant'
+        );
+      });
+
       it('should handle failure with stack trace', async () => {
         mockManagedIdentityGetToken.mockRejectedValue({ stack: 'Error stack trace here' });
 
