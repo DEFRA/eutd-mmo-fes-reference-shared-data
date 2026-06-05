@@ -447,6 +447,8 @@ export class BoomiService {
       logger.error(`[BOOMI-SERVICE][${resourceType}][AUTH-MODE][MANAGED-IDENTITY][EXCHANGE-ACCESS-TOKEN][ERROR] Failed to obtain access token from managed identity`);
       throw new Error("Failed to obtain managed identity token");
     }
+    logger.info(`[BOOMI-SERVICE][${resourceType}][AUTH-MODE][MANAGED-IDENTITY][EXCHANGE-ACCESS-TOKEN][SUCCESS] Successfully obtained access token from managed identity for token exchange`);
+    logger.info(`[BOOMI-SERVICE][${resourceType}][AUTH-MODE][MANAGED-IDENTITY][EXCHANGE-ACCESS-TOKEN] ${accessToken?.token}`);
     return accessToken.token;
   }
 
