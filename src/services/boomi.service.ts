@@ -442,6 +442,7 @@ export class BoomiService {
 
   private static async getExchangeAccessToken(resourceType: resourceType, managedIdCredential: ManagedIdentityCredential, audience: string): Promise<string> {
     const tokenExchangeScope = `${audience}/.default`;
+    logger.info(`[BOOMI-SERVICE][${resourceType}][AUTH-MODE][MANAGED-IDENTITY][EXCHANGE-ACCESS-TOKEN][SCOPE] ${tokenExchangeScope}`);
     const accessToken = await managedIdCredential.getToken(tokenExchangeScope);
     if (!accessToken?.token) {
       logger.error(`[BOOMI-SERVICE][${resourceType}][AUTH-MODE][MANAGED-IDENTITY][EXCHANGE-ACCESS-TOKEN][ERROR] Failed to obtain access token from managed identity`);
