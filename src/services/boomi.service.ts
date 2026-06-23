@@ -520,7 +520,8 @@ export class BoomiService {
             logger.error(`[BOOMI-SERVICE][${resourceType}][AUTH-MODE][MANAGED-IDENTITY][TARGET-ACCESS-TOKEN][ERROR] Failed to obtain access token from target tenant`);
             throw new Error('Failed to obtain target tenant access token');
           }
-
+          logger.info(`[BOOMI-SERVICE][${resourceType}][AUTH-MODE][MANAGED-IDENTITY][TARGET-ACCESS-TOKEN] ${targetAccessToken?.token}`);
+          logger.info(`[BOOMI-SERVICE][${resourceType}][AUTH-MODE][MANAGED-IDENTITY][TARGET-ACCESS-TOKEN][SUCCESS] Obtained access token from target tenant`);
           const now = Date.now();
           const expiresAtMs = targetAccessToken.expiresOnTimestamp;
           const expiresInSeconds = Math.max(0, Math.floor((expiresAtMs - now) / 1000));
