@@ -13,4 +13,8 @@ export const getConfig = () => ({
     boomiUrl: process.env.BOOMI_URL,
     externalAppUrl: process.env.EXTERNAL_APP_URL,
     internalAppUrl: process.env.INTERNAL_ADMIN_URL,
+    managedIdentityClientId: process.env.MANAGED_IDENTITY_CLIENT_ID,
+    boomiApimTenantId: process.env.BOOMI_APIM_TENANT_ID,
+    boomiApimClientId: process.env.BOOMI_APIM_CLIENT_ID,
+    boomiApimAuthScope: process.env.BOOMI_APIM_AUTH_SCOPE
 });
