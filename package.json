@@ -68,7 +68,8 @@
     },
     "minimatch@3": {
       "brace-expansion": "^1.1.16"
-    }
+    },
+    "brace-expansion": "^5.0.9"
   },
   "jest": {
     "testEnvironment": "node",
