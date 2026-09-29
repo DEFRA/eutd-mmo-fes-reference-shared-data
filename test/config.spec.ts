@@ -27,4 +27,18 @@ describe('config', () => {
     expect(config.boomiApiOauthClientId).toBe('ref-boomi-client-id');
     expect(config.boomiApiOauthClientSecret).toBe('ref-boomi-client-secret');
   });
+
+  it('will default boomiCatchApiTimeoutMs when REF_BOOMI_CATCH_API_TIMEOUT_MS is not set', () => {
+    delete process.env.REF_BOOMI_CATCH_API_TIMEOUT_MS;
+
+    const config = SUT.getConfig();
+    expect(config.boomiCatchApiTimeoutMs).toBe(90000);
+  });
+
+  it('will use REF_BOOMI_CATCH_API_TIMEOUT_MS when set', () => {
+    process.env.REF_BOOMI_CATCH_API_TIMEOUT_MS = '12000';
+
+    const config = SUT.getConfig();
+    expect(config.boomiCatchApiTimeoutMs).toBe(12000);
+  });
 });
