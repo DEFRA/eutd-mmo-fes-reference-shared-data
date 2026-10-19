@@ -61,6 +61,7 @@ export interface IEuUpgradeResponse {
   euCatchStatus: euStatus;
   euCatchStatusMessage?: string;
   euCatchReferenceNumber?: string;
+  OperatorIdentifier?: string;
   euCatchStatusCode?: string;
   euCatchStatusName?: string;
   euCatchUri?: string;
@@ -122,6 +123,7 @@ export interface IEuUpgradeCallback {
             };
             ReasonInformation: string;
             fesDocNumber: string;
+            OperatorIdentifier?: string;
             ReferenceSPSReferencedDocument: IReferenceSPSReferencedDocument[];
           };
         };
@@ -609,6 +611,7 @@ export class BoomiService {
         const statusName = acknowledgement.StatusCode['@name'];
         const reasonInfo = acknowledgement.ReasonInformation;
         const issueDateTime = acknowledgement.IssueDateTime.DateTime;
+        const operatorIdentifier = acknowledgement.OperatorIdentifier;
 
         logger.info(`[BOOMI-SERVICE][EU-UPGRADE-CALLBACK][SUCCESS][ID:${id}][STATUS-CODE:${statusCode}]`);
         logger.info(`[BOOMI-SERVICE][EU-UPGRADE-CALLBACK][SUCCESS][STATUS-NAME:${statusName}][REASON:${reasonInfo}]`);
@@ -618,6 +621,7 @@ export class BoomiService {
           euCatchStatus: 'SUCCESS',
           documentNumber,
           euCatchReferenceNumber: id,
+          ...(operatorIdentifier !== undefined && { OperatorIdentifier: operatorIdentifier }),
           euCatchStatusCode: statusCode,
           euCatchStatusName: statusName,
           euCatchUri: euCertificateUri,
