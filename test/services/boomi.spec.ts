@@ -990,6 +990,7 @@ describe('CATCH API Integration (FI0-10355)', () => {
                   },
                   ReasonInformation: 'Message has been successfully processed',
                   fesDocNumber: "GBR-2026-CC-3FD5E066",
+                  OperatorIdentifier: 'OP-12345',
                   ReferenceSPSReferencedDocument: [
                     {
                       TypeCode: {
@@ -1024,6 +1025,7 @@ describe('CATCH API Integration (FI0-10355)', () => {
       expect(result.euCatchReferenceNumber).toBe('CATCH.CC.GB.2025.0000083');
       expect(result.euCatchStatusCode).toBe('70');
       expect(result.euCatchStatusName).toBe('Issued (Validated)');
+      expect(result.OperatorIdentifier).toBe('OP-12345');
       expect(result.euCatchUri).toBe('https://webgate.acceptance.ec.europa.eu/tracesnt-beta/certificate/catch-certificate/CATCH.CC.GB.2025.0000083');
       expect(result.euCatchTimestamp).toBe('2025-07-31T16:59:06.732+02:00');
       expect(result.reasonInformation).toBe('Message has been successfully processed');
@@ -1133,6 +1135,7 @@ describe('CATCH API Integration (FI0-10355)', () => {
       expect(result.euCatchStatus).toBe('IN_PROGRESS');
       expect(result.documentNumber).toBe('GBR-2025-CC-0E8E95F97');
       expect(result.euCatchStatusMessage).toBe('Catch certificate is being retried.');
+      expect(Object.prototype.hasOwnProperty.call(result, 'OperatorIdentifier')).toBe(false);
     });
 
     it('should process a server error response from Boomi', () => {
@@ -1154,6 +1157,85 @@ describe('CATCH API Integration (FI0-10355)', () => {
       expect(result.documentNumber).toBe('GBR-2025-CC-E45C5652D');
       expect(result.faultCode).toBe('S:Server');
       expect(result.faultString).toBe('bad unexpected thing');
+      expect(Object.prototype.hasOwnProperty.call(result, 'OperatorIdentifier')).toBe(false);
+    });
+
+    it('should include OperatorIdentifier as empty string when defined on success callback', () => {
+      const callbackData = {
+        Envelope: {
+          Body: {
+            SubmitCatchResponse: {
+              SPSAcknowledgement: {
+                SPSAcknowledgementDocument: {
+                  IssueDateTime: {
+                    DateTime: '2025-07-31T16:59:06.732+02:00'
+                  },
+                  StatusCode: {
+                    "@name": "Issued (Validated)",
+                    text: "70"
+                  },
+                  ReasonInformation: 'Message has been successfully processed',
+                  fesDocNumber: "GBR-2026-CC-3FD5E066",
+                  OperatorIdentifier: '',
+                  ReferenceSPSReferencedDocument: [
+                    {
+                      ID: {
+                        text: 'CATCH.CC.GB.2025.0000083'
+                      },
+                      AttachmentBinaryObject: {
+                        '@uri': 'https://webgate.acceptance.ec.europa.eu/tracesnt-beta/certificate/catch-certificate/CATCH.CC.GB.2025.0000083'
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      };
+
+      const result = BoomiService.processEuUpgradeCallback(callbackData as any);
+
+      expect(Object.prototype.hasOwnProperty.call(result, 'OperatorIdentifier')).toBe(true);
+      expect(result.OperatorIdentifier).toBe('');
+    });
+
+    it('should omit OperatorIdentifier when undefined on success callback', () => {
+      const callbackData = {
+        Envelope: {
+          Body: {
+            SubmitCatchResponse: {
+              SPSAcknowledgement: {
+                SPSAcknowledgementDocument: {
+                  IssueDateTime: {
+                    DateTime: '2025-07-31T16:59:06.732+02:00'
+                  },
+                  StatusCode: {
+                    "@name": "Issued (Validated)",
+                    text: "70"
+                  },
+                  ReasonInformation: 'Message has been successfully processed',
+                  fesDocNumber: "GBR-2026-CC-3FD5E066",
+                  ReferenceSPSReferencedDocument: [
+                    {
+                      ID: {
+                        text: 'CATCH.CC.GB.2025.0000083'
+                      },
+                      AttachmentBinaryObject: {
+                        '@uri': 'https://webgate.acceptance.ec.europa.eu/tracesnt-beta/certificate/catch-certificate/CATCH.CC.GB.2025.0000083'
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      };
+
+      const result = BoomiService.processEuUpgradeCallback(callbackData as any);
+
+      expect(Object.prototype.hasOwnProperty.call(result, 'OperatorIdentifier')).toBe(false);
     });
 
     it('should throw error when callbackdata is missing', () => {
