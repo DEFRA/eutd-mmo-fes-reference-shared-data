@@ -18,8 +18,8 @@
   "author": "",
   "license": "ISC",
   "engines": {
-    "node": "24.19.0",
-    "npm": "12.0.2"
+    "node": "26.x",
+    "npm": "11.x"
   },
   "devDependencies": {
     "@types/bunyan": "^1.8.11",
