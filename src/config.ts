@@ -8,7 +8,7 @@ export const getConfig = () => ({
     boomiAddressLookupApiOauthScope: process.env.REF_BOOMI_API_OAUTH_AL_SCOPE,
     boomiLandingApiOauthScope: process.env.REF_BOOMI_API_OAUTH_MMO_SCOPE,
     boomiCatchApiOauthScope: process.env.REF_BOOMI_CATCH_API_OAUTH_SCOPE,
-    boomiCatchApiTimeoutMs: Number.parseInt(process.env.REF_BOOMI_CATCH_API_TIMEOUT_MS ?? '90000', 10),
+    boomiCatchApiTimeoutMs: Number.parseInt(process.env.REF_BOOMI_CATCH_API_TIMEOUT_MS ?? '120000', 10),
     boomiAuthUser: process.env.REF_BOOMI_USER,
     boomiUrl: process.env.BOOMI_URL,
     externalAppUrl: process.env.EXTERNAL_APP_URL,
