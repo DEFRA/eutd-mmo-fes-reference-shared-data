@@ -202,10 +202,10 @@ export class BoomiService {
   private static readonly maxRetries = 2;
   private static readonly retryBaseDelayMs = 500;
 
-  private static isTransientError(e: any): boolean {
-    if (!e.response) return true; // network error / timeout
-    const status = e.response.status;
-    return status === 429 || status === 502 || status === 503 || status === 504;
+  // The submit POST is not idempotent: only retry when the request cannot have been processed (timeouts, 502 and 504 may have been).
+  private static isSafeToRetryError(e: any): boolean {
+    if (!e.response) return ['ECONNREFUSED', 'ENOTFOUND', 'EAI_AGAIN'].includes(e.code);
+    return e.response.status === 429 || e.response.status === 503;
   }
 
   private static delay(ms: number): Promise<void> {
@@ -562,16 +562,22 @@ export class BoomiService {
           return response.data;
         } catch (retryErr) {
           lastError = retryErr;
-          if (!this.isTransientError(retryErr) || attempt === this.maxRetries) {
+          if (!this.isSafeToRetryError(retryErr) || attempt === this.maxRetries) {
             break;
           }
-          logger.warn(`[BOOMI-SERVICE][${resourceType}][TRANSIENT-ERROR] attempt=${attempt} ${retryErr.message || retryErr}`);
+          logger.warn(`[BOOMI-SERVICE][${resourceType}][SAFE-RETRY-ERROR] attempt=${attempt} ${retryErr.message || retryErr}`);
         }
       }
 
       throw lastError;
 
     } catch (e) {
+      // A SOAP fault on a non-2xx response is a business outcome: hand it back so the caller keeps the fault code and validation errors.
+      if (e.response?.data?.Envelope?.Body?.Fault) {
+        logger.warn(`[BOOMI-SERVICE][${resourceType}][FAULT-RESPONSE][STATUS:${e.response.status}]`);
+        return e.response.data;
+      }
+
       logger.error(`[BOOMI-SERVICE][${resourceType}][ERROR] ${e}`);
 
       if (e.response) {
@@ -650,7 +656,7 @@ export class BoomiService {
           // Build consolidated error message
           const errorMessages = errors.map(e => `${e.ID}: ${e.Message.text}`).join('; ');
 
-          logger.error(`[BOOMI-SERVICE][EU-UPGRADE-CALLBACK][FAILURE][CONSOLIDATED-ERRORS:${errorMessages}]`);
+          logger.warn(`[BOOMI-SERVICE][EU-UPGRADE-CALLBACK][FAILURE][CONSOLIDATED-ERRORS:${errorMessages}]`);
         }
 
         const failureResponse: IEuUpgradeResponse = {

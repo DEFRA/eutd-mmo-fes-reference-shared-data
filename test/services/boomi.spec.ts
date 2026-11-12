@@ -1440,4 +1440,49 @@ describe('Migrated BoomiService lightweight tests', () => {
     expect(res).toEqual({ result: 'ok' });
   });
 
+  describe('sendDocumentToBoomi non-idempotent submit handling', () => {
+    const payload = { any: 'payload' } as any;
+
+    beforeEach(() => {
+      (mockedAxios.post as jest.Mock).mockReset();
+      jest.spyOn(BoomiService as any, 'getEntraOAuthToken').mockResolvedValue({ token_type: 'Bearer', access_token: 'abc', expires_in: 3600, ext_expires_in: 3600 });
+      jest.spyOn(BoomiService as any, 'delay').mockResolvedValue(undefined);
+    });
+
+    it.each([
+      ['timeout', { code: 'ECONNABORTED', message: 'timeout of 120000ms exceeded' }],
+      ['connection reset', { code: 'ECONNRESET', message: 'socket hang up' }],
+      ['502', { response: { status: 502, statusText: 'Bad Gateway' }, message: '502' }],
+      ['504', { response: { status: 504, statusText: 'Gateway Timeout' }, message: '504' }]
+    ])('does not retry on %s because the request may have been processed', async (_name, error) => {
+      (mockedAxios.post as jest.Mock).mockRejectedValue(error);
+
+      await expect(BoomiService.sendDocumentToBoomi(payload, { documentType: 'CATCHCERTIFICATE' }, 'catchSubmit')).rejects.toThrow();
+
+      expect(mockedAxios.post).toHaveBeenCalledTimes(1);
+    });
+
+    it.each([
+      ['429', { response: { status: 429, statusText: 'Too Many Requests' }, message: '429' }],
+      ['connection refused', { code: 'ECONNREFUSED', message: 'connect ECONNREFUSED' }]
+    ])('retries on %s because the request was not processed', async (_name, error) => {
+      (mockedAxios.post as jest.Mock).mockRejectedValueOnce(error).mockResolvedValueOnce({ status: 200, data: { result: 'ok' } });
+
+      const res = await BoomiService.sendDocumentToBoomi(payload, { documentType: 'CATCHCERTIFICATE' }, 'catchSubmit');
+
+      expect(res).toEqual({ result: 'ok' });
+      expect(mockedAxios.post).toHaveBeenCalledTimes(2);
+    });
+
+    it('returns a SOAP fault body from a non-2xx response so validation errors are kept', async () => {
+      const fault = { Envelope: { Body: { Fault: { faultstring: 'Document number already taken', fesDocNumber: 'GBR-2026-CC-1' } } } };
+      (mockedAxios.post as jest.Mock).mockRejectedValue({ response: { status: 422, statusText: 'Unprocessable', data: fault }, message: '422' });
+
+      const res = await BoomiService.sendDocumentToBoomi(payload, { documentType: 'CATCHCERTIFICATE' }, 'catchSubmit');
+
+      expect(res).toEqual(fault);
+      expect(mockedAxios.post).toHaveBeenCalledTimes(1);
+    });
+  });
+
 });
