@@ -32,7 +32,7 @@ describe('config', () => {
     delete process.env.REF_BOOMI_CATCH_API_TIMEOUT_MS;
 
     const config = SUT.getConfig();
-    expect(config.boomiCatchApiTimeoutMs).toBe(90000);
+    expect(config.boomiCatchApiTimeoutMs).toBe(120000);
   });
 
   it('will use REF_BOOMI_CATCH_API_TIMEOUT_MS when set', () => {
